@@ -7,23 +7,33 @@ import Footer from "../components/Footer";
 import PricingModal from "../components/PricingModal";
 
 export default function HomePage() {
-  // --- STATE (MEMORY) ---
+  // State hanya untuk kontrol Modal (Buka/Tutup)
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [clickCount, setClickCount] = useState(0); // Hitungan klik
 
-  // --- LOGIKA UTAMA: UNTUK KARTU TOOLS ---
+  // LOGIKA BARU: Menggunakan LocalStorage (Memori Browser)
   const handleCardClick = (e: React.MouseEvent, url: string) => {
-    e.preventDefault(); // Matikan link bawaan
+    e.preventDefault(); // Matikan link bawaan agar tidak langsung loncat
 
-    console.log("Card diklik. Hitungan saat ini:", clickCount);
+    // 1. Ambil data dari "Otak" Browser
+    // (Kita pakai try-catch biar aman dari error server)
+    let currentCount = 0;
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("guidify_clicks");
+      currentCount = saved ? parseInt(saved) : 0;
+    }
 
-    // LOGIKA LIMIT:
-    // Jika user sudah pernah klik 1 kali atau lebih -> Munculkan Popup
-    if (clickCount >= 1) {
+    console.log("Status Klik:", currentCount); // Cek di console
+
+    // 2. Logika Penentuan Nasib
+    if (currentCount >= 1) {
+      // Jika ingatan browser bilang sudah 1x -> STOP & BUKA MODAL
       setIsModalOpen(true);
     } else {
-      // Jika belum, tambah hitungan jadi 1, lalu buka link
-      setClickCount(prev => prev + 1);
+      // Jika masih 0 -> Catat di ingatan browser jadi 1
+      if (typeof window !== "undefined") {
+        localStorage.setItem("guidify_clicks", "1");
+      }
+      // Lalu buka link di tab baru
       window.open(url, '_blank');
     }
   };
@@ -37,7 +47,7 @@ export default function HomePage() {
 
       <div className="relative z-10 flex-grow flex flex-col items-center justify-center px-4 text-center pt-32 pb-10">
         
-        {/* JUDUL UTAMA (HERO) */}
+        {/* JUDUL UTAMA */}
         <h1 className="text-5xl md:text-8xl font-bold mb-6 font-cinzel tracking-tight animate-in fade-in slide-in-from-bottom-4 duration-1000">
           Guidify<span className="text-amber-500">.</span>
         </h1>
@@ -47,7 +57,7 @@ export default function HomePage() {
           <span className="text-amber-500/80">Fast. Secure. Unlimited.</span>
         </p>
 
-        {/* --- MENU PILIHAN TOOLS (KARTU SAJA - TANPA INPUT BOX) --- */}
+        {/* --- MENU KARTU (LOGIKA LOCALSTORAGE) --- */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl z-10 mb-20 animate-in fade-in zoom-in duration-1000 delay-300">
             
             {/* TIKTOK */}
@@ -99,7 +109,7 @@ export default function HomePage() {
             </a>
         </div>
 
-        {/* --- TEKS SEO (YANG WAJIB ADA) --- */}
+        {/* --- TEKS SEO --- */}
         <section className="w-full max-w-4xl text-left border-t border-white/10 pt-16 animate-in fade-in duration-1000 delay-500">
             <article className="prose prose-invert lg:prose-xl mx-auto">
                 <h2 className="text-3xl font-bold text-white mb-6 font-cinzel">The Universal Social Media Downloader</h2>
