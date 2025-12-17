@@ -25,11 +25,8 @@ export default function HomePage() {
     // 2. Logika Penentuan
     if (currentCount >= 1) {
       // JIKA LIMIT HABIS:
-      // Kita panggil Alert dulu untuk memastikan logika jalan
-      // (Nanti bisa dihapus kalau popup sudah muncul)
-      // alert("Limit reached! Popup should appear now."); 
-      
-      setIsModalOpen(true); // Buka Modal
+      // Perintah ini sekarang PASTI terlihat karena Modal sudah di luar <main>
+      setIsModalOpen(true); 
     } else {
       // JIKA MASIH ADA KUOTA:
       if (typeof window !== "undefined") {
