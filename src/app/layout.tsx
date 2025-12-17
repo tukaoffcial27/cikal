@@ -2,13 +2,11 @@ import type { Metadata } from "next";
 import { Outfit, Cinzel } from "next/font/google"; 
 import "./globals.css";
 
-// Setup Font Modern (Teks Body)
 const outfit = Outfit({ 
   subsets: ["latin"],
   variable: "--font-outfit",
 });
 
-// Setup Font Mewah (Judul/Logo)
 const cinzel = Cinzel({ 
   subsets: ["latin"],
   variable: "--font-cinzel",
@@ -17,8 +15,12 @@ const cinzel = Cinzel({
 export const metadata: Metadata = {
   title: "Guidify Suite",
   description: "Premium Social Media Tools",
+  // INI BAGIAN PENTING YANG SUDAH DIPERBAIKI:
+  verification: {
+    google: "F8-qAir322zBSKzxINGeb_ahWPg-JPWwtIBUBm-Osik",
+  },
 };
-google: "F8-qAir322zBSKzxINGeb_ahWPg-JPWwtIBUBm-Osik"
+
 export default function RootLayout({
   children,
 }: Readonly<{
