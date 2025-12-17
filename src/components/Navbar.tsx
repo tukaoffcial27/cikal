@@ -1,0 +1,85 @@
+"use client";
+import Link from "next/link";
+import { useState } from "react";
+
+export default function Navbar() {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <nav className="fixed top-0 w-full z-50 bg-black/80 backdrop-blur-md border-b border-white/10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-20">
+          
+          {/* BAGIAN 1: LOGO MEWAH */}
+          <div className="flex-shrink-0">
+            <Link href="/" className="flex flex-col group">
+              <span className="font-cinzel text-2xl font-bold text-white tracking-widest group-hover:text-amber-500 transition-colors">
+                GUIDIFY
+              </span>
+              <span className="text-[10px] font-outfit text-amber-500 tracking-[0.3em] uppercase">
+                Premium Suite
+              </span>
+            </Link>
+          </div>
+
+          {/* BAGIAN 2: MENU DESKTOP (Hilang di HP) */}
+          <div className="hidden md:block">
+            <div className="ml-10 flex items-baseline space-x-8">
+              <NavLink href="/tiktok" text="TikTok" />
+              <NavLink href="/insta" text="Instagram" />
+              <NavLink href="/youtube" text="YouTube" />
+              <button className="bg-white text-black px-6 py-2 rounded-full font-bold hover:bg-amber-500 hover:text-white transition-all duration-300 transform hover:scale-105">
+                Login
+              </button>
+            </div>
+          </div>
+
+          {/* BAGIAN 3: TOMBOL MENU HP (Hamburger) */}
+          <div className="-mr-2 flex md:hidden">
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="text-white hover:text-amber-500 p-2 transition-colors"
+            >
+              <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                {isOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* BAGIAN 4: MENU DROP DOWN (Khusus HP) */}
+      {isOpen && (
+        <div className="md:hidden bg-black border-b border-white/10 slide-down-animation">
+          <div className="px-4 pt-2 pb-6 space-y-2 flex flex-col">
+            <MobileNavLink href="/tiktok" text="TikTok Downloader" />
+            <MobileNavLink href="/insta" text="Instagram Saver" />
+            <MobileNavLink href="/youtube" text="YouTube Tools" />
+          </div>
+        </div>
+      )}
+    </nav>
+  );
+}
+
+// Komponen Kecil untuk Link Desktop
+function NavLink({ href, text }: { href: string; text: string }) {
+  return (
+    <Link href={href} className="text-gray-300 hover:text-amber-400 px-3 py-2 text-sm font-medium transition-all font-outfit tracking-wide">
+      {text}
+    </Link>
+  );
+}
+
+// Komponen Kecil untuk Link Mobile
+function MobileNavLink({ href, text }: { href: string; text: string }) {
+  return (
+    <Link href={href} className="text-gray-300 hover:text-white hover:bg-white/10 block px-3 py-4 rounded-lg text-base font-medium font-outfit">
+      {text}
+    </Link>
+  );
+}
