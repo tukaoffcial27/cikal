@@ -3,62 +3,116 @@
 import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { Zap, Check, X } from "lucide-react"; // Pastikan import icon ada
 
-// KITA TARUH KODE MODAL LANGSUNG DI SINI (INLINE)
-// Supaya tidak ada alasan "File tidak ketemu" atau "Props tidak nyambung"
-function InlineModal({ onClose }: { onClose: () => void }) {
+// --- 1. KOMPONEN MODAL (KITA TARUH DISINI AGAR 100% MUNCUL) ---
+function InlinePricingModal({ onClose }: { onClose: () => void }) {
+  const CHECKOUT_URL = "https://guidify.lemonsqueezy.com/buy/5eb36fb5-4bf6-4813-8cbd-536eb6a0d726";
+
   return (
-    <div 
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100vw',
-        height: '100vh',
-        zIndex: 999999, /* Z-Index Tertinggi */
-        backgroundColor: 'rgba(0,0,0,0.85)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backdropFilter: 'blur(5px)'
-      }}
-    >
-      <div className="bg-[#111] border border-amber-500 rounded-2xl p-8 max-w-sm w-full text-center relative shadow-2xl">
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+      {/* Background Gelap */}
+      <div 
+        className="absolute inset-0 bg-black/95 backdrop-blur-sm"
+        onClick={onClose}
+      ></div>
+
+      {/* Konten Modal Asli (Desain Cantik) */}
+      <div className="relative z-[100000] bg-[#111] border border-amber-500/50 rounded-3xl p-6 max-w-md w-full shadow-2xl shadow-amber-500/20 flex flex-col gap-6 animate-in fade-in zoom-in duration-300">
+        
+        {/* Tombol Close */}
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 text-xl font-bold"
+          className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors p-2"
         >
-          ✕
+          <X className="w-6 h-6" />
         </button>
-        
-        <div className="text-4xl mb-4">⚡</div>
-        <h2 className="text-2xl font-bold text-white mb-2">TEST POPUP</h2>
-        <p className="text-gray-400 text-sm mb-6">
-          Jika Anda melihat ini, berarti sistem VISUAL normal. <br/>
-          Masalah sebelumnya hanya di logika "Kapan Muncul".
-        </p>
 
-        <a 
-          href="https://guidify.lemonsqueezy.com/buy/5eb36fb5-4bf6-4813-8cbd-536eb6a0d726"
-          target="_blank"
-          className="block w-full bg-amber-500 text-black font-bold py-3 rounded-xl"
-        >
-          Tes Tombol Bayar
-        </a>
+        {/* Header */}
+        <div className="text-center pt-2">
+            <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-amber-500/20 text-amber-500 text-3xl shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+                <Zap className="w-8 h-8 fill-current" />
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-2 font-cinzel">Daily Limit Reached</h2>
+            <p className="text-gray-400 text-sm px-4">
+              Jatah download gratis harian habis. Upgrade sekarang untuk akses tanpa batas.
+            </p>
+        </div>
+
+        {/* Pricing Card */}
+        <div className="bg-gradient-to-b from-[#1a1a1a] to-transparent border border-white/10 rounded-2xl p-5">
+            <div className="flex justify-between items-end mb-4 pb-4 border-b border-white/10">
+                <div>
+                    <h3 className="text-lg font-bold text-white">Premium Suite</h3>
+                    <p className="text-amber-500 text-[10px] font-bold uppercase tracking-widest bg-amber-500/10 inline-block px-2 py-1 rounded mt-1">
+                      Best Value
+                    </p>
+                </div>
+                <div className="text-right">
+                    <span className="text-3xl font-bold text-white">$4.99</span>
+                    <span className="text-gray-500 text-sm font-medium">/mo</span>
+                </div>
+            </div>
+
+            <ul className="space-y-3 mb-6">
+                <li className="flex items-start gap-3 text-sm text-gray-300">
+                    <Check className="w-4 h-4 text-amber-500" /> Unlimited Downloads
+                </li>
+                <li className="flex items-start gap-3 text-sm text-gray-300">
+                    <Check className="w-4 h-4 text-amber-500" /> High-Speed Server
+                </li>
+                <li className="flex items-start gap-3 text-sm text-gray-300">
+                    <Check className="w-4 h-4 text-amber-500" /> No Ads & Popups
+                </li>
+            </ul>
+
+            {/* Tombol Bayar */}
+            <a 
+                href={CHECKOUT_URL}
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="block w-full bg-amber-500 hover:bg-amber-400 text-black font-bold py-4 rounded-xl text-center transition-all transform active:scale-95 shadow-lg shadow-amber-500/20"
+            >
+                Unlock Unlimited Access ⚡
+            </a>
+            
+            <p className="text-center text-[10px] text-gray-600 mt-3">
+                Secure payment via Lemon Squeezy. Cancel anytime.
+            </p>
+        </div>
       </div>
     </div>
   );
 }
 
+// --- 2. HALAMAN UTAMA ---
 export default function HomePage() {
-  // KITA SET DEFAULT 'TRUE' -> Supaya pas dibuka LANGSUNG MUNCUL
-  const [showPopup, setShowPopup] = useState(true);
+  // Default False (Supaya tidak muncul pas dibuka pertama kali)
+  const [showPopup, setShowPopup] = useState(false);
+  const [isClient, setIsClient] = useState(false);
 
-  // Fungsi Logika Limit (Disimpan dulu, kita tes visual dulu)
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // LOGIKA LIMIT REAL
   const handleCardClick = (e: React.MouseEvent, url: string) => {
     e.preventDefault();
-    // Untuk tes ini, kita paksa munculkan popup setiap kali klik
-    setShowPopup(true);
+
+    if (!isClient) return;
+
+    // Cek Memori Browser
+    const saved = localStorage.getItem("guidify_limit_real");
+    const isLimitReached = saved === "true";
+
+    if (isLimitReached) {
+      // JIKA LIMIT SUDAH HABIS -> MUNCULKAN POPUP INLINE
+      setShowPopup(true);
+    } else {
+      // JIKA BELUM -> CATAT LIMIT DAN BUKA LINK
+      localStorage.setItem("guidify_limit_real", "true");
+      window.open(url, '_blank');
+    }
   };
 
   return (
@@ -79,14 +133,6 @@ export default function HomePage() {
           <p className="text-gray-400 text-xl md:text-2xl mb-12 max-w-2xl mx-auto leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200">
             The Ultimate All-in-One Social Media Downloader.
           </p>
-
-          {/* TOMBOL TEST MANUAL */}
-          <button 
-            onClick={() => setShowPopup(true)}
-            className="mb-10 bg-red-600 text-white px-6 py-2 rounded-full font-bold z-50 relative"
-          >
-            🔴 KLIK SAYA UNTUK MUNCLUKAN POPUP
-          </button>
 
           {/* MENU KARTU */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl z-10 mb-20 animate-in fade-in zoom-in duration-1000 delay-300">
@@ -115,15 +161,21 @@ export default function HomePage() {
 
           {/* TEKS SEO */}
           <section className="w-full max-w-4xl text-left border-t border-white/10 pt-16 animate-in fade-in duration-1000 delay-500">
-             <p className="text-gray-500 text-sm text-center">Section SEO Content...</p>
+              <article className="prose prose-invert lg:prose-xl mx-auto">
+                  <h2 className="text-3xl font-bold text-white mb-6 font-cinzel">The Universal Social Media Downloader</h2>
+                  <p className="text-gray-400 mb-6 leading-relaxed text-base">
+                      Guidify is designed to be your single destination for saving media content from the internet. In an era where content is spread across multiple apps like TikTok, Instagram, and YouTube, jumping between different websites to download videos can be frustrating. Guidify solves this by providing a unified, high-speed, and secure platform.
+                  </p>
+                  {/* ...Sisa konten SEO sama... */}
+              </article>
           </section>
 
         </div>
         <Footer />
       </main>
 
-      {/* RENDER MODAL SECARA LANGSUNG JIKA STATE TRUE */}
-      {showPopup && <InlineModal onClose={() => setShowPopup(false)} />}
+      {/* RENDER MODAL JIKA STATE TRUE */}
+      {showPopup && <InlinePricingModal onClose={() => setShowPopup(false)} />}
     </>
   );
 }
