@@ -5,14 +5,14 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { Zap, Check, X } from "lucide-react"; 
 
-// --- 1. KOMPONEN MODAL (INLINE - SUPAYA PASTI TERBACA) ---
+// --- 1. KOMPONEN MODAL (INLINE - STRUKTUR SAMA DENGAN "TEST POPUP" YANG BERHASIL) ---
 function InlinePricingModal({ onClose }: { onClose: () => void }) {
   const CHECKOUT_URL = "https://guidify.lemonsqueezy.com/buy/5eb36fb5-4bf6-4813-8cbd-536eb6a0d726";
 
   return (
     <div 
       className="fixed inset-0 z-[99999] flex items-center justify-center p-4"
-      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }} // Force CSS
+      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }} // Force CSS agar menutupi layar
     >
       {/* Background Gelap */}
       <div 
@@ -21,7 +21,7 @@ function InlinePricingModal({ onClose }: { onClose: () => void }) {
       ></div>
 
       {/* Konten Modal */}
-      <div className="relative z-[100000] bg-[#111] border border-amber-500/50 rounded-3xl p-6 max-w-md w-full shadow-2xl flex flex-col gap-6">
+      <div className="relative z-[100000] bg-[#111] border border-amber-500/50 rounded-3xl p-6 max-w-md w-full shadow-2xl flex flex-col gap-6 animate-in fade-in zoom-in duration-300">
         
         {/* Tombol Close */}
         <button 
