@@ -18,8 +18,7 @@ export const metadata: Metadata = {
   title: "Guidify Suite",
   description: "Premium Social Media Tools",
 };
-<meta name="google-site-verification" content="F8-qAir322zBSKzxINGeb_ahWPg-JPWwtIBUBm-Osik" />
-
+google: "F8-qAir322zBSKzxINGeb_ahWPg-JPWwtIBUBm-Osik"
 export default function RootLayout({
   children,
 }: Readonly<{
