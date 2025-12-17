@@ -1,34 +1,27 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import PricingModal from "../components/PricingModal";
 
 export default function HomePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [clickCount, setClickCount] = useState(0);
 
-  // Fungsi Cerdas: Handle Klik dengan Memory Permanen
+  // LOGIKA SIMPEL & KUAT
   const handleToolClick = (e: React.MouseEvent<HTMLAnchorElement>, url: string) => {
-    e.preventDefault(); // 1. Tahan link asli
+    e.preventDefault(); // 1. Wajib: Matikan link asli dulu
 
-    // 2. Cek Memory Browser (Local Storage)
-    // Kita ambil data bernama "userDownloadCount"
-    const savedCount = typeof window !== "undefined" ? localStorage.getItem("userDownloadCount") : "0";
-    const currentCount = parseInt(savedCount || "0");
-
-    // 3. Logika Penentuan
-    if (currentCount >= 1) {
-      // Jika di memory tercatat sudah 1x klik atau lebih -> BUKA POPUP
-      console.log("Limit reached (Saved count: " + currentCount + "). Opening modal.");
+    // 2. Cek Limit Sederhana (Tanpa LocalStorage yang ribet)
+    // Logika: Jika klik sudah lebih dari 0 (artinya ini klik kedua), TAHAN & BUKA MODAL
+    if (clickCount > 0) {
+      console.log("Limit reached! Opening modal...");
       setIsModalOpen(true);
     } else {
-      // Jika belum, catat ke memory: "Sekarang jadi 1"
-      if (typeof window !== "undefined") {
-        localStorage.setItem("userDownloadCount", "1");
-      }
-      // Buka link di tab baru
-      window.open(url, '_blank');
+      // 3. Jika ini klik pertama, biarkan lewat
+      setClickCount(prev => prev + 1); // Tambah hitungan
+      window.open(url, '_blank'); // Buka link di tab baru
     }
   };
 
