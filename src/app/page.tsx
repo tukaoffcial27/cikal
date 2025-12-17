@@ -3,16 +3,17 @@
 import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { Zap, Check, X } from "lucide-react"; 
+// Kita tidak import Icon dulu biar aman dari crash plugin
+// import { Zap, Check, X } from "lucide-react"; 
 
-// --- 1. KOMPONEN MODAL (INLINE - STRUKTUR SAMA DENGAN "TEST POPUP" YANG BERHASIL) ---
+// --- 1. MODAL (INLINE & EMOJI VERSION) ---
 function InlinePricingModal({ onClose }: { onClose: () => void }) {
   const CHECKOUT_URL = "https://guidify.lemonsqueezy.com/buy/5eb36fb5-4bf6-4813-8cbd-536eb6a0d726";
 
   return (
     <div 
-      className="fixed inset-0 z-[99999] flex items-center justify-center p-4"
-      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }} // Force CSS agar menutupi layar
+      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 99999 }}
+      className="flex items-center justify-center p-4"
     >
       {/* Background Gelap */}
       <div 
@@ -21,21 +22,19 @@ function InlinePricingModal({ onClose }: { onClose: () => void }) {
       ></div>
 
       {/* Konten Modal */}
-      <div className="relative z-[100000] bg-[#111] border border-amber-500/50 rounded-3xl p-6 max-w-md w-full shadow-2xl flex flex-col gap-6 animate-in fade-in zoom-in duration-300">
+      <div className="relative z-[100000] bg-[#111] border border-amber-500/50 rounded-3xl p-6 max-w-md w-full shadow-2xl flex flex-col gap-6">
         
         {/* Tombol Close */}
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-white p-2"
+          className="absolute top-4 right-4 text-gray-400 hover:text-white font-bold text-xl"
         >
-          <X className="w-6 h-6" />
+          ✕
         </button>
 
         {/* Header */}
         <div className="text-center pt-2">
-            <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-amber-500/20 text-amber-500 text-3xl">
-                <Zap className="w-8 h-8 fill-current" />
-            </div>
+            <div className="text-4xl mb-4">⚡</div>
             <h2 className="text-2xl font-bold text-white mb-2 font-cinzel">Daily Limit Reached</h2>
             <p className="text-gray-400 text-sm px-4">
               Jatah download gratis harian habis. Upgrade sekarang.
@@ -56,15 +55,9 @@ function InlinePricingModal({ onClose }: { onClose: () => void }) {
             </div>
 
             <ul className="space-y-3 mb-6 text-left">
-                <li className="flex items-center gap-3 text-sm text-gray-300">
-                    <Check className="w-4 h-4 text-amber-500" /> Unlimited Downloads
-                </li>
-                <li className="flex items-center gap-3 text-sm text-gray-300">
-                    <Check className="w-4 h-4 text-amber-500" /> High-Speed Server
-                </li>
-                <li className="flex items-center gap-3 text-sm text-gray-300">
-                    <Check className="w-4 h-4 text-amber-500" /> No Ads & Popups
-                </li>
+                <li className="flex items-center gap-3 text-sm text-gray-300">✅ Unlimited Downloads</li>
+                <li className="flex items-center gap-3 text-sm text-gray-300">✅ High-Speed Server</li>
+                <li className="flex items-center gap-3 text-sm text-gray-300">✅ No Ads & Popups</li>
             </ul>
 
             {/* Tombol Bayar */}
@@ -85,29 +78,42 @@ function InlinePricingModal({ onClose }: { onClose: () => void }) {
 // --- 2. HALAMAN UTAMA ---
 export default function HomePage() {
   const [showPopup, setShowPopup] = useState(false);
+  const [clickCount, setClickCount] = useState(0); // Hanya untuk tampilan debug
   const [isClient, setIsClient] = useState(false);
 
-  // Cek apakah kode dijalankan di browser
   useEffect(() => {
     setIsClient(true);
+    // Cek limit saat loading pertama kali
+    const saved = localStorage.getItem("guidify_clicks_v2");
+    if (saved) setClickCount(parseInt(saved));
   }, []);
 
-  // LOGIKA LIMIT REAL
-  const handleCardClick = (e: React.MouseEvent, url: string) => {
-    e.preventDefault();
+  // FUNGSI RESET (UNTUK TESTING ANDA)
+  const resetLimit = () => {
+    localStorage.removeItem("guidify_clicks_v2");
+    setClickCount(0);
+    setShowPopup(false);
+    alert("Limit Direset! Silakan coba klik lagi.");
+  };
 
+  // LOGIKA LIMIT BARU (TANPA <a> TAG)
+  const handleCardClick = (url: string) => {
     if (!isClient) return;
 
-    // Cek Memori Browser
-    const saved = localStorage.getItem("guidify_limit_real");
-    const isLimitReached = saved === "true";
+    // 1. Ambil data limit terbaru
+    const saved = localStorage.getItem("guidify_clicks_v2");
+    const current = saved ? parseInt(saved) : 0;
 
-    if (isLimitReached) {
-      // JIKA LIMIT SUDAH HABIS -> MUNCULKAN POPUP
+    console.log("Klik! Count saat ini:", current);
+
+    if (current >= 1) {
+      // JIKA LIMIT HABIS -> MUNCULKAN POPUP
       setShowPopup(true);
     } else {
-      // JIKA BELUM -> CATAT LIMIT DAN BUKA LINK
-      localStorage.setItem("guidify_limit_real", "true");
+      // JIKA BELUM -> CATAT & BUKA LINK
+      const newCount = current + 1;
+      localStorage.setItem("guidify_clicks_v2", newCount.toString());
+      setClickCount(newCount); // Update tampilan debug
       window.open(url, '_blank');
     }
   };
@@ -131,37 +137,59 @@ export default function HomePage() {
             The Ultimate All-in-One Social Media Downloader.
           </p>
 
-          {/* MENU KARTU */}
+          {/* --- PANEL DEBUG (HAPUS NANTI KALAU SUDAH OK) --- */}
+          <div className="mb-8 p-4 bg-gray-900 border border-gray-700 rounded-lg inline-flex flex-col gap-2">
+            <p className="text-sm text-gray-400">
+              Status Limit (Debug): <span className={clickCount >= 1 ? "text-red-500 font-bold" : "text-green-500 font-bold"}>{clickCount} / 1</span>
+            </p>
+            <button 
+              onClick={resetLimit}
+              className="text-xs bg-gray-800 hover:bg-gray-700 px-3 py-1 rounded border border-gray-600"
+            >
+              🔄 Reset Limit
+            </button>
+          </div>
+          {/* ----------------------------------------------- */}
+
+          {/* MENU KARTU - MENGGUNAKAN DIV (BUKAN <A> LINK) AGAR LOGIKA JALAN */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl z-10 mb-20 animate-in fade-in zoom-in duration-1000 delay-300">
               
               {/* TIKTOK */}
-              <a href="#" onClick={(e) => handleCardClick(e, "https://tiktok.guidify.app")} className="group relative bg-[#111] border border-white/10 rounded-3xl p-8 hover:border-amber-500 transition-colors duration-300 cursor-pointer">
+              <div 
+                onClick={() => handleCardClick("https://tiktok.guidify.app")} 
+                className="group relative bg-[#111] border border-white/10 rounded-3xl p-8 hover:border-amber-500 transition-colors duration-300 cursor-pointer"
+              >
                   <div className="w-16 h-16 bg-black border border-white/20 rounded-2xl flex items-center justify-center mb-6 text-3xl">🎵</div>
                   <h3 className="text-2xl font-bold mb-2 text-white">TikTok Downloader</h3>
                   <p className="text-gray-500 text-sm">Download video tanpa watermark.</p>
-              </a>
+              </div>
 
               {/* INSTAGRAM */}
-              <a href="#" onClick={(e) => handleCardClick(e, "https://insta.guidify.app")} className="group relative bg-[#111] border border-white/10 rounded-3xl p-8 hover:border-pink-500 transition-colors duration-300 cursor-pointer">
+              <div 
+                onClick={() => handleCardClick("https://insta.guidify.app")} 
+                className="group relative bg-[#111] border border-white/10 rounded-3xl p-8 hover:border-pink-500 transition-colors duration-300 cursor-pointer"
+              >
                   <div className="w-16 h-16 bg-black border border-white/20 rounded-2xl flex items-center justify-center mb-6 text-3xl">📸</div>
                   <h3 className="text-2xl font-bold mb-2 text-white">Instagram Saver</h3>
                   <p className="text-gray-500 text-sm">Simpan Reels & Stories HD.</p>
-              </a>
+              </div>
 
               {/* YOUTUBE */}
-              <a href="#" onClick={(e) => handleCardClick(e, "https://youtube.guidify.app")} className="group relative bg-[#111] border border-white/10 rounded-3xl p-8 hover:border-red-500 transition-colors duration-300 cursor-pointer">
+              <div 
+                onClick={() => handleCardClick("https://youtube.guidify.app")} 
+                className="group relative bg-[#111] border border-white/10 rounded-3xl p-8 hover:border-red-500 transition-colors duration-300 cursor-pointer"
+              >
                   <div className="w-16 h-16 bg-black border border-white/20 rounded-2xl flex items-center justify-center mb-6 text-3xl">▶️</div>
                   <h3 className="text-2xl font-bold mb-2 text-white">YouTube Converter</h3>
                   <p className="text-gray-500 text-sm">Convert ke MP4 & MP3 cepat.</p>
-              </a>
+              </div>
           </div>
 
-          {/* --- TEKS SEO (YANG DULUNYA HILANG) --- */}
-          {/* SAYA SUDAH PERBAIKI CLASSNYA AGAR MUNCUL TANPA PLUGIN */}
+          {/* TEKS SEO */}
           <section className="w-full max-w-4xl text-left border-t border-white/10 pt-16 animate-in fade-in duration-1000 delay-500">
               <div className="mx-auto">
                   <h2 className="text-3xl font-bold text-white mb-6 font-cinzel">The Universal Social Media Downloader</h2>
-                  <p className="text-gray-400 mb-6 leading-relaxed text-base">
+                  <p className="text-gray-300 mb-6 leading-relaxed text-base">
                       Guidify is designed to be your single destination for saving media content from the internet. In an era where content is spread across multiple apps like TikTok, Instagram, and YouTube, jumping between different websites to download videos can be frustrating. Guidify solves this by providing a unified, high-speed, and secure platform.
                   </p>
 
