@@ -8,18 +8,25 @@ interface PricingModalProps {
 }
 
 export default function PricingModal({ isOpen, onClose }: PricingModalProps) {
-  // Jika tidak open, jangan render apa-apa
+  // Jika logika false, stop render
   if (!isOpen) return null;
 
   const CHECKOUT_URL = "https://guidify.lemonsqueezy.com/buy/e86f0e0a-a8dd-4c54-819f-6906fd6f08f2";
 
   return (
-    // PERBAIKAN: 
-    // 1. Menggunakan z-[9999] agar pasti paling depan
-    // 2. Menghapus 'animate-in fade-in' yang menyebabkan popup invisible
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+    // PERBAIKAN PENTING:
+    // 1. Menghapus 'animate-in fade-in' (karena plugin tailwindcss-animate TIDAK ADA di package.json Anda)
+    // 2. Menggunakan 'fixed inset-0 z-[100]' agar menimpa Navbar (yang biasanya z-10/z-20)
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       
-      <div className="bg-[#111] border border-amber-500/30 rounded-3xl p-6 max-w-md w-full relative shadow-2xl shadow-amber-900/40">
+      {/* BACKGROUND GELAP (Overlay) */}
+      <div 
+        className="absolute inset-0 bg-black/90 backdrop-blur-sm"
+        onClick={onClose} // Klik background untuk tutup
+      ></div>
+
+      {/* KONTEN MODAL */}
+      <div className="relative z-[101] bg-[#111] border border-amber-500/30 rounded-3xl p-6 max-w-md w-full shadow-2xl shadow-amber-900/40">
         
         {/* Tombol Close */}
         <button 
