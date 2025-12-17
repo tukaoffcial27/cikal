@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
-// --- 1. MODAL (INLINE - FINAL DESIGN) ---
+// --- 1. MODAL (INLINE) ---
 function InlinePricingModal({ onClose }: { onClose: () => void }) {
   const CHECKOUT_URL = "https://guidify.lemonsqueezy.com/buy/5eb36fb5-4bf6-4813-8cbd-536eb6a0d726";
 
@@ -73,32 +73,38 @@ function InlinePricingModal({ onClose }: { onClose: () => void }) {
   );
 }
 
-// --- 2. HALAMAN UTAMA (BERSIH) ---
+// --- 2. HALAMAN UTAMA ---
 export default function HomePage() {
   const [showPopup, setShowPopup] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  
+  // State dummy untuk memaksa React render ulang saat limit berubah
+  const [, setForceUpdate] = useState(0);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  // LOGIKA LIMIT (TANPA DEBUG)
+  // LOGIKA LIMIT MURNI (TANPA LINK)
   const handleCardClick = (url: string) => {
     if (!isClient) return;
 
-    // Gunakan Key Baru biar bersih dari tes sebelumnya
-    const STORAGE_KEY = "guidify_daily_limit_v1"; 
+    // KEY PENYIMPANAN YANG SAMA DENGAN SEBELUMNYA
+    // Agar status "Habis" Anda tetap terbaca
+    const STORAGE_KEY = "guidify_clicks_v2"; 
     
     const saved = localStorage.getItem(STORAGE_KEY);
     const current = saved ? parseInt(saved) : 0;
 
     if (current >= 1) {
-      // JIKA SUDAH KLIK 1X ATAU LEBIH -> MUNCULKAN POPUP
+      // JIKA SUDAH 1: JANGAN LAKUKAN APAPUN KECUALI BUKA POPUP
+      console.log("Limit habis. Buka Popup.");
       setShowPopup(true);
     } else {
-      // JIKA BELUM -> CATAT DAN BUKA LINK
-      const newCount = current + 1;
-      localStorage.setItem(STORAGE_KEY, newCount.toString());
+      // JIKA MASIH 0: BUKA LINK & CATAT
+      console.log("Limit aman. Buka Link.");
+      localStorage.setItem(STORAGE_KEY, "1");
+      setForceUpdate(n => n + 1); // Paksa update UI
       window.open(url, '_blank');
     }
   };
@@ -122,7 +128,8 @@ export default function HomePage() {
             The Ultimate All-in-One Social Media Downloader.
           </p>
 
-          {/* MENU KARTU - TETAP PAKAI DIV AGAR LOGIKA POPUP LANCAR */}
+          {/* MENU KARTU - MENGGUNAKAN DIV (BUKAN <a> TAG) */}
+          {/* Ini kunci agar logika popup tidak bentrok dengan browser */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl z-10 mb-20 animate-in fade-in zoom-in duration-1000 delay-300">
               
               {/* TIKTOK */}
@@ -165,7 +172,7 @@ export default function HomePage() {
               </div>
           </div>
 
-          {/* TEKS SEO LENGKAP (Low Content Fix) */}
+          {/* TEKS SEO (LOW CONTENT FIX) */}
           <section className="w-full max-w-4xl text-left border-t border-white/10 pt-16 animate-in fade-in duration-1000 delay-500">
               <div className="mx-auto">
                   <h2 className="text-3xl font-bold text-white mb-6 font-cinzel">The Universal Social Media Downloader</h2>
