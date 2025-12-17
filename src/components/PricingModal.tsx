@@ -1,59 +1,83 @@
 "use client";
 
-export default function PricingModal({ onClose }: { onClose: () => void }) {
+import { X, Check, Zap } from "lucide-react";
+
+interface PricingModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export default function PricingModal({ isOpen, onClose }: PricingModalProps) {
+  if (!isOpen) return null;
+
+  // Link Pembayaran Resmi Anda
+  const CHECKOUT_URL = "https://guidify.lemonsqueezy.com/buy/e86f0e0a-a8dd-4c54-819f-6906fd6f08f2";
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in">
-      {/* Backdrop Gelap & Blur */}
-      <div 
-        className="absolute inset-0 bg-black/90 backdrop-blur-md" 
-        onClick={onClose}
-      ></div>
-
-      {/* Konten Modal */}
-      <div className="relative bg-[#0a0a0a] border border-amber-500/50 rounded-3xl p-8 max-w-md w-full text-center shadow-[0_0_50px_rgba(245,158,11,0.2)] transform transition-all scale-100">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-[#111] border border-amber-500/30 rounded-3xl p-6 max-w-md w-full relative shadow-2xl shadow-amber-900/20">
         
-        {/* Badge Premium */}
-        <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-600 to-yellow-500 text-black font-bold px-8 py-2 rounded-full shadow-lg shadow-amber-500/40 tracking-widest text-sm">
-            LIMIT REACHED
+        {/* Tombol Close */}
+        <button 
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors"
+        >
+          <X className="w-6 h-6" />
+        </button>
+
+        {/* Header */}
+        <div className="text-center mb-8 pt-4">
+            <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-amber-500/20 text-amber-500">
+                <Zap className="w-8 h-8 fill-current" />
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-2 font-cinzel">Daily Limit Reached</h2>
+            <p className="text-gray-400 text-sm">You've used your free download for today.</p>
         </div>
-
-        <h2 className="text-3xl font-bold text-white mt-8 mb-4 font-cinzel">
-            Unlock Unlimited <span className="text-amber-500">Power</span>
-        </h2>
-        
-        <p className="text-gray-400 mb-8 text-sm leading-relaxed">
-            You've used your free daily download. <br/>
-            Upgrade now to remove all limits and access high-speed servers.
-        </p>
 
         {/* Pricing Card */}
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-8 text-left hover:border-amber-500/50 transition-colors cursor-pointer group">
-            <div className="flex justify-between items-end mb-2">
-                <span className="text-lg font-bold text-white group-hover:text-amber-400 transition-colors">Pro Creator</span>
-                <span className="text-3xl font-bold text-amber-500">$4.99<span className="text-xs text-gray-500 font-normal ml-1">/mo</span></span>
+        <div className="bg-gradient-to-br from-amber-500/10 to-transparent border border-amber-500/20 rounded-2xl p-6 mb-6">
+            <div className="flex justify-between items-end mb-4">
+                <div>
+                    <h3 className="text-lg font-bold text-white">Premium Access</h3>
+                    <p className="text-amber-500 text-xs font-bold uppercase tracking-wider">Most Popular</p>
+                </div>
+                <div className="text-right">
+                    <span className="text-3xl font-bold text-white">$4.99</span>
+                    <span className="text-gray-400 text-sm">/mo</span>
+                </div>
             </div>
-            <div className="h-px w-full bg-white/10 my-4"></div>
-            <ul className="space-y-3 text-gray-300 text-sm">
-                <li className="flex gap-3"><span className="text-amber-500">✓</span> <strong>Unlimited</strong> Downloads 24/7</li>
-                <li className="flex gap-3"><span className="text-amber-500">✓</span> <strong>4K Ultra HD</strong> Quality</li>
-                <li className="flex gap-3"><span className="text-amber-500">✓</span> <strong>No Ads</strong> & Priority Speed</li>
+
+            <ul className="space-y-3 mb-6">
+                {[
+                    "Unlimited Downloads (TikTok, IG, YT)",
+                    "Priority High-Speed Server",
+                    "No Ads & Popups",
+                    "Support Original Creators"
+                ].map((item, i) => (
+                    <li key={i} className="flex items-center gap-3 text-sm text-gray-300">
+                        <div className="bg-amber-500 rounded-full p-0.5">
+                            <Check className="w-3 h-3 text-black font-bold" />
+                        </div>
+                        {item}
+                    </li>
+                ))}
             </ul>
+
+            {/* TOMBOL BAYAR (Money Button) */}
+            <a 
+                href={CHECKOUT_URL}
+                target="_blank" // Membuka di tab baru agar website tidak tertutup
+                rel="noopener noreferrer"
+                className="block w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-bold py-4 rounded-xl text-center transition-all transform hover:scale-[1.02] shadow-lg shadow-amber-500/25"
+            >
+                Unlock Unlimited Access ⚡
+            </a>
+            
+            <p className="text-center text-xs text-gray-500 mt-4">
+                Secure payment via Lemon Squeezy. Cancel anytime.
+            </p>
         </div>
 
-        {/* Tombol CTA */}
-        <button 
-            className="w-full bg-white text-black font-bold py-4 rounded-xl hover:bg-amber-500 hover:text-white transition-all duration-300 shadow-xl mb-4 text-lg"
-            onClick={() => window.open('https://wa.me/6281234567890?text=Halo%20Admin,%20saya%20mau%20upgrade%20Premium%20Guidify', '_blank')}
-        >
-            UPGRADE NOW
-        </button>
-
-        <button 
-            onClick={onClose}
-            className="text-gray-600 hover:text-gray-400 text-xs tracking-wider uppercase font-semibold"
-        >
-            I'll wait until tomorrow
-        </button>
       </div>
     </div>
   );
