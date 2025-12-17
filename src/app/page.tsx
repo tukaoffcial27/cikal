@@ -1,0 +1,75 @@
+"use client";
+
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
+
+export default function HomePage() {
+  return (
+    <main className="min-h-screen bg-black font-outfit text-white selection:bg-amber-500 selection:text-black flex flex-col">
+      <Navbar />
+
+      <div className="relative z-10 flex-grow flex flex-col items-center justify-center px-4 text-center pt-32 pb-20">
+        
+        {/* Background Effects */}
+        <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+            <div className="absolute top-[20%] left-[20%] w-[400px] h-[400px] bg-amber-500/10 rounded-full blur-[100px]"></div>
+            <div className="absolute bottom-[20%] right-[20%] w-[400px] h-[400px] bg-purple-500/10 rounded-full blur-[100px]"></div>
+        </div>
+
+        <h1 className="text-5xl md:text-8xl font-bold mb-6 font-cinzel tracking-tight relative z-10">
+          Guidify<span className="text-amber-500">.</span>
+        </h1>
+
+        <p className="text-gray-400 text-xl md:text-2xl mb-12 max-w-2xl mx-auto leading-relaxed">
+          The Ultimate All-in-One Social Media Downloader. <br/>
+          Premium Quality. No Watermark. Unlimited Speed.
+        </p>
+
+        {/* MENU PILIHAN TOOLS */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl z-10">
+            
+            {/* KARTU TIKTOK */}
+            <a href="https://tiktok.guidify.app" className="group relative bg-[#111] border border-white/10 rounded-3xl p-8 hover:border-amber-500 transition-all duration-300 hover:-translate-y-2">
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-amber-900/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="w-16 h-16 bg-black border border-white/20 rounded-2xl flex items-center justify-center mb-6 text-3xl group-hover:scale-110 transition-transform">
+                    🎵
+                </div>
+                <h3 className="text-2xl font-bold mb-2 text-white">TikTok Downloader</h3>
+                <p className="text-gray-500 text-sm">Download video tanpa watermark & audio MP3 viral.</p>
+                <div className="mt-6 text-amber-500 font-bold flex items-center gap-2">
+                    Open Tool <span className="group-hover:translate-x-1 transition-transform">→</span>
+                </div>
+            </a>
+
+            {/* KARTU INSTAGRAM */}
+            <a href="https://insta.guidify.app" className="group relative bg-[#111] border border-white/10 rounded-3xl p-8 hover:border-pink-500 transition-all duration-300 hover:-translate-y-2">
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-pink-900/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="w-16 h-16 bg-black border border-white/20 rounded-2xl flex items-center justify-center mb-6 text-3xl group-hover:scale-110 transition-transform">
+                    📸
+                </div>
+                <h3 className="text-2xl font-bold mb-2 text-white">Instagram Saver</h3>
+                <p className="text-gray-500 text-sm">Simpan Reels, Stories, dan Foto Profile HD.</p>
+                <div className="mt-6 text-pink-500 font-bold flex items-center gap-2">
+                    Open Tool <span className="group-hover:translate-x-1 transition-transform">→</span>
+                </div>
+            </a>
+
+            {/* KARTU YOUTUBE */}
+            <a href="https://youtube.guidify.app" className="group relative bg-[#111] border border-white/10 rounded-3xl p-8 hover:border-red-500 transition-all duration-300 hover:-translate-y-2">
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-red-900/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="w-16 h-16 bg-black border border-white/20 rounded-2xl flex items-center justify-center mb-6 text-3xl group-hover:scale-110 transition-transform">
+                    ▶️
+                </div>
+                <h3 className="text-2xl font-bold mb-2 text-white">YouTube Converter</h3>
+                <p className="text-gray-500 text-sm">Convert video ke MP4 & MP3 tercepat.</p>
+                <div className="mt-6 text-red-500 font-bold flex items-center gap-2">
+                    Open Tool <span className="group-hover:translate-x-1 transition-transform">→</span>
+                </div>
+            </a>
+
+        </div>
+      </div>
+      <Footer />
+    </main>
+  );
+}
