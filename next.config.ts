@@ -1,11 +1,13 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  // Matikan pengecekan TypeScript saat build agar tidak gagal karena error kecil
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  /* config options here */
   typescript: {
+    // Matikan cek error TypeScript saat build
     ignoreBuildErrors: true,
   },
-  // Matikan pengecekan ESLint (kerapian kode) saat build
   eslint: {
+    // Matikan cek kerapian kode saat build
     ignoreDuringBuilds: true,
   },
 };
