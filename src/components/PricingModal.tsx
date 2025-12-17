@@ -8,19 +8,23 @@ interface PricingModalProps {
 }
 
 export default function PricingModal({ isOpen, onClose }: PricingModalProps) {
+  // Jika tidak open, jangan render apa-apa
   if (!isOpen) return null;
 
-  // Link Pembayaran Resmi Anda
   const CHECKOUT_URL = "https://guidify.lemonsqueezy.com/buy/e86f0e0a-a8dd-4c54-819f-6906fd6f08f2";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-[#111] border border-amber-500/30 rounded-3xl p-6 max-w-md w-full relative shadow-2xl shadow-amber-900/20">
+    // PERBAIKAN: 
+    // 1. Menggunakan z-[9999] agar pasti paling depan
+    // 2. Menghapus 'animate-in fade-in' yang menyebabkan popup invisible
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+      
+      <div className="bg-[#111] border border-amber-500/30 rounded-3xl p-6 max-w-md w-full relative shadow-2xl shadow-amber-900/40">
         
         {/* Tombol Close */}
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors"
+          className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
         >
           <X className="w-6 h-6" />
         </button>
@@ -63,10 +67,10 @@ export default function PricingModal({ isOpen, onClose }: PricingModalProps) {
                 ))}
             </ul>
 
-            {/* TOMBOL BAYAR (Money Button) */}
+            {/* TOMBOL BAYAR */}
             <a 
                 href={CHECKOUT_URL}
-                target="_blank" // Membuka di tab baru agar website tidak tertutup
+                target="_blank" 
                 rel="noopener noreferrer"
                 className="block w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-bold py-4 rounded-xl text-center transition-all transform hover:scale-[1.02] shadow-lg shadow-amber-500/25"
             >
