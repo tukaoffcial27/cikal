@@ -1,6 +1,7 @@
 "use client";
 
-import { X, Check, Zap } from "lucide-react";
+// KITA MATIKAN IMPORT ICON DULU (Sering bikin crash di Next.js baru)
+// import { X, Check, Zap } from "lucide-react"; 
 
 interface PricingModalProps {
   isOpen: boolean;
@@ -8,92 +9,119 @@ interface PricingModalProps {
 }
 
 export default function PricingModal({ isOpen, onClose }: PricingModalProps) {
-  // Jika logika false, stop render sama sekali
+  // Debugging: Cek di console apakah modal dipanggil
+  if (isOpen) console.log("🟢 MODAL RENDERED: TRUE");
+
   if (!isOpen) return null;
 
-  // LINK BARU YANG SUDAH DI-UPDATE
   const CHECKOUT_URL = "https://guidify.lemonsqueezy.com/buy/5eb36fb5-4bf6-4813-8cbd-536eb6a0d726";
 
   return (
-    // PERBAIKAN VISUAL (CSS):
-    // 1. z-[9999]: Memastikan layer ini ada di atas segalanya (Navbar, Background, dll).
-    // 2. fixed inset-0: Memenuhi satu layar penuh.
-    // 3. HAPUS 'animate-in': Ini biang kerok kenapa popup transparan kemarin.
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+    // LAYER 1: Background Gelap (Pakai Style Manual agar Z-Index tembus langit)
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: '100vw',
+      height: '100vh',
+      backgroundColor: 'rgba(0,0,0,0.85)',
+      zIndex: 2147483647, // Angka z-index tertinggi yang mungkin di browser
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backdropFilter: 'blur(5px)'
+    }}>
       
-      {/* BACKGROUND GELAP (Overlay) */}
-      <div 
-        className="absolute inset-0 bg-black/90 backdrop-blur-sm transition-opacity"
-        onClick={onClose} // Klik area gelap untuk tutup
-      ></div>
+      {/* LAYER 2: Kotak Modal */}
+      <div style={{
+        backgroundColor: '#111',
+        border: '1px solid #d97706', // Warna Amber
+        borderRadius: '20px',
+        padding: '30px',
+        maxWidth: '90%',
+        width: '400px',
+        color: 'white',
+        textAlign: 'center',
+        position: 'relative',
+        boxShadow: '0 0 50px rgba(217, 119, 6, 0.3)'
+      }}>
 
-      {/* KARTU MODAL UTAMA */}
-      <div className="relative z-[10000] bg-[#111] border border-amber-500/30 rounded-3xl p-6 max-w-md w-full shadow-2xl shadow-amber-500/10 flex flex-col gap-6">
-        
-        {/* Tombol Close (Silang) */}
+        {/* Tombol Close (Pakai Text X) */}
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors p-2"
+          style={{
+            position: 'absolute',
+            top: '15px',
+            right: '20px',
+            background: 'none',
+            border: 'none',
+            color: '#888',
+            fontSize: '24px',
+            cursor: 'pointer',
+            fontWeight: 'bold'
+          }}
         >
-          <X className="w-6 h-6" />
+          ✕
         </button>
 
-        {/* Header Icon & Teks */}
-        <div className="text-center pt-2">
-            <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-amber-500/20 text-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.3)]">
-                <Zap className="w-8 h-8 fill-current" />
-            </div>
-            <h2 className="text-2xl font-bold text-white mb-2 font-cinzel">Daily Limit Reached</h2>
-            <p className="text-gray-400 text-sm px-4">
-              You've used your free download for today. Upgrade to continue instantly.
+        {/* Header (Pakai Emoji ⚡) */}
+        <div style={{ marginBottom: '20px' }}>
+            <div style={{ fontSize: '40px', marginBottom: '10px' }}>⚡</div>
+            <h2 style={{ fontSize: '24px', margin: '0 0 10px 0', fontFamily: 'serif' }}>
+              Daily Limit Reached
+            </h2>
+            <p style={{ color: '#888', fontSize: '14px', margin: 0 }}>
+              Jatah download gratis harian habis.
             </p>
         </div>
 
-        {/* Pricing Card (Kotak Harga) */}
-        <div className="bg-gradient-to-b from-[#1a1a1a] to-transparent border border-white/5 rounded-2xl p-5">
-            <div className="flex justify-between items-end mb-4 pb-4 border-b border-white/5">
-                <div>
-                    <h3 className="text-lg font-bold text-white">Premium Suite</h3>
-                    <p className="text-amber-500 text-[10px] font-bold uppercase tracking-widest bg-amber-500/10 inline-block px-2 py-1 rounded mt-1">
-                      Best Value
-                    </p>
+        {/* Kotak Harga */}
+        <div style={{
+            background: 'rgba(255,255,255,0.05)',
+            borderRadius: '15px',
+            padding: '20px',
+            border: '1px solid rgba(255,255,255,0.1)'
+        }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '20px' }}>
+                <div style={{ textAlign: 'left' }}>
+                    <div style={{ fontWeight: 'bold' }}>Premium</div>
+                    <span style={{ background: '#d97706', color: 'black', fontSize: '10px', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>BEST</span>
                 </div>
-                <div className="text-right">
-                    <span className="text-3xl font-bold text-white">$4.99</span>
-                    <span className="text-gray-500 text-sm font-medium">/mo</span>
+                <div style={{ textAlign: 'right' }}>
+                    <span style={{ fontSize: '28px', fontWeight: 'bold' }}>$4.99</span>
+                    <span style={{ color: '#888', fontSize: '12px' }}>/mo</span>
                 </div>
             </div>
 
-            <ul className="space-y-3 mb-6">
-                {[
-                    "Unlimited Downloads (All Tools)",
-                    "Priority High-Speed Server",
-                    "No Ads & Popups",
-                    "Support Our Development"
-                ].map((item, i) => (
-                    <li key={i} className="flex items-start gap-3 text-sm text-gray-300">
-                        <div className="mt-0.5 bg-amber-500/20 rounded-full p-0.5">
-                            <Check className="w-3 h-3 text-amber-500 stroke-[3]" />
-                        </div>
-                        {item}
-                    </li>
-                ))}
+            {/* List Fitur (Pakai Emoji ✅) */}
+            <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 20px 0', textAlign: 'left', fontSize: '14px', color: '#ccc' }}>
+                <li style={{ marginBottom: '8px' }}>✅ Unlimited Downloads</li>
+                <li style={{ marginBottom: '8px' }}>✅ High-Speed Server</li>
+                <li style={{ marginBottom: '8px' }}>✅ No Ads & Popups</li>
             </ul>
 
-            {/* TOMBOL BAYAR (Checkout) */}
+            {/* Tombol Bayar */}
             <a 
                 href={CHECKOUT_URL}
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="block w-full bg-amber-500 hover:bg-amber-400 text-black font-bold py-4 rounded-xl text-center transition-all transform active:scale-95 shadow-lg shadow-amber-500/20"
+                style={{
+                    display: 'block',
+                    width: '100%',
+                    backgroundColor: '#d97706', // Amber-600
+                    color: 'black',
+                    fontWeight: 'bold',
+                    padding: '15px 0',
+                    borderRadius: '10px',
+                    textDecoration: 'none',
+                    fontSize: '16px',
+                    cursor: 'pointer'
+                }}
             >
                 Unlock Unlimited Access ⚡
             </a>
-            
-            <p className="text-center text-[10px] text-gray-600 mt-3">
-                Secure payment via Lemon Squeezy. Cancel anytime.
-            </p>
         </div>
+
       </div>
     </div>
   );
