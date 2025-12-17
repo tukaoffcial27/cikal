@@ -1,25 +1,28 @@
 "use client";
 
-import { useState } from "react"; // 1. Import useState
+import { useState } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import PricingModal from "../components/PricingModal"; // 2. Import Modal
+import PricingModal from "../components/PricingModal";
 
 export default function HomePage() {
-  // 3. Setup State untuk Modal dan Penghitung Klik
+  // State untuk modal dan penghitung klik
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [clickCount, setClickCount] = useState(0);
 
-  // 4. Fungsi Logika Pembatasan (The Paywall Logic)
+  // LOGIKA BARU: Menggunakan window.open agar lebih stabil
   const handleToolClick = (e: React.MouseEvent<HTMLAnchorElement>, url: string) => {
-    // Cek apakah limit sudah tercapai (misal: lebih dari 1 kali klik)
+    e.preventDefault(); // 1. Matikan fungsi link standar (wajib!)
+
+    // 2. Cek Logika Limit
     if (clickCount >= 1) {
-      e.preventDefault(); // Mencegah link terbuka
-      setIsModalOpen(true); // Munculkan Modal
+      // Jika sudah klik 1x (atau lebih), munculkan popup
+      console.log("Limit reached! Opening modal..."); // Debugging
+      setIsModalOpen(true);
     } else {
-      // Jika masih gratis, tambahkan penghitung
+      // Jika belum, tambah counter & buka link manual
       setClickCount((prev) => prev + 1);
-      // Biarkan link berjalan normal (membuka tab baru)
+      window.open(url, '_blank'); // Buka tab baru lewat JS
     }
   };
 
@@ -27,7 +30,7 @@ export default function HomePage() {
     <main className="min-h-screen bg-black font-outfit text-white selection:bg-amber-500 selection:text-black flex flex-col">
       <Navbar />
 
-      {/* --- BAGIAN BACKGROUND (OPTIMIZED) --- */}
+      {/* BACKGROUND */}
       <div className="fixed inset-0 z-0 pointer-events-none bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-black to-black opacity-50"></div>
 
       <div className="relative z-10 flex-grow flex flex-col items-center justify-center px-4 text-center pt-32 pb-10">
@@ -47,8 +50,7 @@ export default function HomePage() {
             {/* KARTU TIKTOK */}
             <a 
               href="https://tiktok.guidify.app" 
-              target="_blank" // Membuka di tab baru agar limit tidak ter-reset
-              onClick={(e) => handleToolClick(e, "tiktok")}
+              onClick={(e) => handleToolClick(e, "https://tiktok.guidify.app")}
               className="group relative bg-[#111] border border-white/10 rounded-3xl p-8 hover:border-amber-500 transition-colors duration-300 cursor-pointer"
             >
                 <div className="w-16 h-16 bg-black border border-white/20 rounded-2xl flex items-center justify-center mb-6 text-3xl group-hover:scale-105 transition-transform">
@@ -64,8 +66,7 @@ export default function HomePage() {
             {/* KARTU INSTAGRAM */}
             <a 
               href="https://insta.guidify.app"
-              target="_blank"
-              onClick={(e) => handleToolClick(e, "instagram")}
+              onClick={(e) => handleToolClick(e, "https://insta.guidify.app")}
               className="group relative bg-[#111] border border-white/10 rounded-3xl p-8 hover:border-pink-500 transition-colors duration-300 cursor-pointer"
             >
                 <div className="w-16 h-16 bg-black border border-white/20 rounded-2xl flex items-center justify-center mb-6 text-3xl group-hover:scale-105 transition-transform">
@@ -81,8 +82,7 @@ export default function HomePage() {
             {/* KARTU YOUTUBE */}
             <a 
               href="https://youtube.guidify.app"
-              target="_blank"
-              onClick={(e) => handleToolClick(e, "youtube")}
+              onClick={(e) => handleToolClick(e, "https://youtube.guidify.app")}
               className="group relative bg-[#111] border border-white/10 rounded-3xl p-8 hover:border-red-500 transition-colors duration-300 cursor-pointer"
             >
                 <div className="w-16 h-16 bg-black border border-white/20 rounded-2xl flex items-center justify-center mb-6 text-3xl group-hover:scale-105 transition-transform">
@@ -96,7 +96,7 @@ export default function HomePage() {
             </a>
         </div>
 
-        {/* --- SEO CONTENT SECTION (TETAP UTUH) --- */}
+        {/* SEO SECTION */}
         <section className="w-full max-w-4xl text-left border-t border-white/10 pt-16 animate-in fade-in duration-1000 delay-500">
             <article className="prose prose-invert lg:prose-xl mx-auto">
                 <h2 className="text-3xl font-bold text-white mb-6 font-cinzel">The Universal Social Media Downloader</h2>
@@ -123,13 +123,13 @@ export default function HomePage() {
 
       </div>
       <Footer />
-
-      {/* 5. MEMASANG POPUP MODAL DI SINI */}
+      
+      {/* POPUP MODAL */}
       <PricingModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
       />
-      
+
     </main>
   );
 }
