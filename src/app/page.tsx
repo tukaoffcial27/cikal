@@ -2,16 +2,12 @@
 
 import { useState } from "react";
 import { Zap, Download, Search } from "lucide-react";
-import PricingModal from "@/components/PricingModal";
+// PERBAIKAN DI BAWAH INI: Menggunakan "../" bukan "@/"
+import PricingModal from "../components/PricingModal"; 
 
 export default function Home() {
-  // State untuk mengontrol kemunculan Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
-  // State untuk melacak jumlah download (Simulasi limit)
   const [downloadCount, setDownloadCount] = useState(0);
-  
-  // State untuk input URL
   const [inputUrl, setInputUrl] = useState("");
 
   const handleDownloadAction = (e: React.FormEvent) => {
@@ -19,23 +15,19 @@ export default function Home() {
 
     if (!inputUrl) return alert("Please paste a URL first!");
 
-    // LOGIKA LIMIT: Jika sudah 1x download, buka Modal Upgrade
     if (downloadCount >= 1) {
       setIsModalOpen(true);
       return;
     }
 
-    // Simulasi Proses Download Berhasil
     alert("Analysing video... Your download will start shortly!");
     
-    // Tambahkan angka download
     setDownloadCount(prev => prev + 1);
     setInputUrl("");
   };
 
   return (
     <div className="min-h-screen bg-black text-white font-outfit">
-      {/* Background Glow Decor */}
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full h-full overflow-hidden pointer-events-none z-0">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-amber-500/10 blur-[120px] rounded-full" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-amber-500/10 blur-[120px] rounded-full" />
@@ -43,13 +35,11 @@ export default function Home() {
 
       <main className="relative z-10 max-w-4xl mx-auto px-6 pt-24 pb-12 flex flex-col items-center">
         
-        {/* Badge */}
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-bold mb-6 tracking-widest uppercase">
           <Zap className="w-3 h-3 fill-current" />
           Premium Suite
         </div>
 
-        {/* Hero Section */}
         <h1 className="text-5xl md:text-7xl font-bold text-center mb-6 font-cinzel bg-gradient-to-b from-white to-gray-500 bg-clip-text text-transparent">
           Guidify Suite
         </h1>
@@ -57,7 +47,6 @@ export default function Home() {
           Download high-quality videos from TikTok, Instagram, and YouTube without watermarks.
         </p>
 
-        {/* Input Box */}
         <form 
           onSubmit={handleDownloadAction}
           className="w-full max-w-2xl bg-[#111] border border-white/10 p-2 rounded-2xl flex flex-col md:flex-row gap-2 shadow-2xl"
@@ -81,7 +70,6 @@ export default function Home() {
           </button>
         </form>
 
-        {/* Info Limit */}
         <p className="mt-6 text-sm text-gray-500">
           Free Daily Limit: <span className={downloadCount >= 1 ? "text-red-500 font-bold" : "text-amber-500"}>
             {downloadCount}/1
@@ -90,7 +78,6 @@ export default function Home() {
 
       </main>
 
-      {/* --- KOMPONEN MODAL YANG TADI KITA PERBAIKI --- */}
       <PricingModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
