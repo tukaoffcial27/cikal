@@ -4,14 +4,16 @@ import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
-// --- 1. MODAL (UPDATED VERSION) ---
-// Perbaikan: Menggunakan Class Tailwind sepenuhnya untuk Z-Index & Positioning yang lebih aman
+// --- 1. MODAL (INLINE - FINAL DESIGN) ---
 function InlinePricingModal({ onClose }: { onClose: () => void }) {
   const CHECKOUT_URL = "https://guidify.lemonsqueezy.com/buy/5eb36fb5-4bf6-4813-8cbd-536eb6a0d726";
 
   return (
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
-      {/* Background Gelap (Overlay) */}
+    <div 
+      className="fixed inset-0 z-[99999] flex items-center justify-center p-4"
+      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
+    >
+      {/* Background Gelap */}
       <div 
         className="absolute inset-0 bg-black/95 backdrop-blur-sm transition-opacity"
         onClick={onClose}
@@ -71,54 +73,32 @@ function InlinePricingModal({ onClose }: { onClose: () => void }) {
   );
 }
 
-// --- 2. HALAMAN UTAMA ---
+// --- 2. HALAMAN UTAMA (BERSIH) ---
 export default function HomePage() {
   const [showPopup, setShowPopup] = useState(false);
-  const [clickCount, setClickCount] = useState(0); 
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
-    // Cek limit saat loading
-    const saved = localStorage.getItem("guidify_clicks_v2");
-    // Gunakan logika aman: Jika NaN atau null, anggap 0
-    const val = saved ? parseInt(saved) : 0;
-    setClickCount(isNaN(val) ? 0 : val);
   }, []);
 
-  // FUNGSI RESET
-  const resetLimit = () => {
-    localStorage.removeItem("guidify_clicks_v2");
-    setClickCount(0);
-    setShowPopup(false);
-    alert("Limit Direset! Silakan coba klik lagi.");
-  };
-
-  // LOGIKA LIMIT
+  // LOGIKA LIMIT (TANPA DEBUG)
   const handleCardClick = (url: string) => {
     if (!isClient) return;
 
-    // 1. Ambil data limit terbaru
-    const saved = localStorage.getItem("guidify_clicks_v2");
-    let current = saved ? parseInt(saved) : 0;
-
-    // SAFETY CHECK: Jika storage rusak (NaN), reset ke 0
-    if (isNaN(current)) {
-      current = 0;
-    }
-
-    console.log(`Klik Kartu | Current: ${current} | Limit: 1`);
+    // Gunakan Key Baru biar bersih dari tes sebelumnya
+    const STORAGE_KEY = "guidify_daily_limit_v1"; 
+    
+    const saved = localStorage.getItem(STORAGE_KEY);
+    const current = saved ? parseInt(saved) : 0;
 
     if (current >= 1) {
-      // JIKA LIMIT HABIS -> LOG & POPUP
-      console.log("🚫 Limit reached! Showing popup...");
+      // JIKA SUDAH KLIK 1X ATAU LEBIH -> MUNCULKAN POPUP
       setShowPopup(true);
     } else {
-      // JIKA BELUM -> CATAT & BUKA LINK
-      console.log("✅ Limit OK! Opening link...");
+      // JIKA BELUM -> CATAT DAN BUKA LINK
       const newCount = current + 1;
-      localStorage.setItem("guidify_clicks_v2", newCount.toString());
-      setClickCount(newCount); 
+      localStorage.setItem(STORAGE_KEY, newCount.toString());
       window.open(url, '_blank');
     }
   };
@@ -142,21 +122,7 @@ export default function HomePage() {
             The Ultimate All-in-One Social Media Downloader.
           </p>
 
-          {/* --- PANEL DEBUG --- */}
-          <div className="mb-8 p-4 bg-gray-900 border border-gray-700 rounded-lg inline-flex flex-col gap-2">
-            <p className="text-sm text-gray-400">
-              Status Limit: <span className={clickCount >= 1 ? "text-red-500 font-bold" : "text-green-500 font-bold"}>{clickCount} / 1</span>
-            </p>
-            <button 
-              onClick={resetLimit}
-              className="text-xs bg-gray-800 hover:bg-gray-700 px-3 py-1 rounded border border-gray-600 transition-colors"
-            >
-              🔄 Reset Limit
-            </button>
-          </div>
-          {/* ------------------- */}
-
-          {/* MENU KARTU */}
+          {/* MENU KARTU - TETAP PAKAI DIV AGAR LOGIKA POPUP LANCAR */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl z-10 mb-20 animate-in fade-in zoom-in duration-1000 delay-300">
               
               {/* TIKTOK */}
@@ -167,6 +133,9 @@ export default function HomePage() {
                   <div className="w-16 h-16 bg-black border border-white/20 rounded-2xl flex items-center justify-center mb-6 text-3xl group-hover:scale-110 transition-transform">🎵</div>
                   <h3 className="text-2xl font-bold mb-2 text-white">TikTok Downloader</h3>
                   <p className="text-gray-500 text-sm">Download video tanpa watermark.</p>
+                  <div className="mt-6 text-amber-500 font-bold flex items-center gap-2 text-sm">
+                    Open Tool →
+                  </div>
               </div>
 
               {/* INSTAGRAM */}
@@ -177,6 +146,9 @@ export default function HomePage() {
                   <div className="w-16 h-16 bg-black border border-white/20 rounded-2xl flex items-center justify-center mb-6 text-3xl group-hover:scale-110 transition-transform">📸</div>
                   <h3 className="text-2xl font-bold mb-2 text-white">Instagram Saver</h3>
                   <p className="text-gray-500 text-sm">Simpan Reels & Stories HD.</p>
+                  <div className="mt-6 text-pink-500 font-bold flex items-center gap-2 text-sm">
+                    Open Tool →
+                  </div>
               </div>
 
               {/* YOUTUBE */}
@@ -187,25 +159,32 @@ export default function HomePage() {
                   <div className="w-16 h-16 bg-black border border-white/20 rounded-2xl flex items-center justify-center mb-6 text-3xl group-hover:scale-110 transition-transform">▶️</div>
                   <h3 className="text-2xl font-bold mb-2 text-white">YouTube Converter</h3>
                   <p className="text-gray-500 text-sm">Convert ke MP4 & MP3 cepat.</p>
+                  <div className="mt-6 text-red-500 font-bold flex items-center gap-2 text-sm">
+                    Open Tool →
+                  </div>
               </div>
           </div>
 
-          {/* SEO SECTION */}
+          {/* TEKS SEO LENGKAP (Low Content Fix) */}
           <section className="w-full max-w-4xl text-left border-t border-white/10 pt-16 animate-in fade-in duration-1000 delay-500">
               <div className="mx-auto">
                   <h2 className="text-3xl font-bold text-white mb-6 font-cinzel">The Universal Social Media Downloader</h2>
                   <p className="text-gray-300 mb-6 leading-relaxed text-base">
-                      Guidify is designed to be your single destination for saving media content from the internet.
+                      Guidify is designed to be your single destination for saving media content from the internet. In an era where content is spread across multiple apps like TikTok, Instagram, and YouTube, jumping between different websites to download videos can be frustrating. Guidify solves this by providing a unified, high-speed, and secure platform.
                   </p>
-                  {/* (Konten SEO disederhanakan untuk ringkas) */}
+
                   <div className="grid md:grid-cols-2 gap-8 my-10">
                       <div>
                           <h3 className="text-xl font-bold text-amber-500 mb-3">Why Guidify is Different?</h3>
-                          <p className="text-gray-400 text-sm">Focused on UX, Premium Servers, Instant Downloads.</p>
+                          <p className="text-gray-400 text-sm">
+                              Unlike other tools that are cluttered with popup ads and slow servers, Guidify focuses on User Experience (UX). We use premium cloud servers to ensure your downloads start instantly.
+                          </p>
                       </div>
                       <div>
                            <h3 className="text-xl font-bold text-amber-500 mb-3">Privacy First Policy</h3>
-                          <p className="text-gray-400 text-sm">No download history stored. Real-time processing.</p>
+                          <p className="text-gray-400 text-sm">
+                              We do not store your download history. The videos are processed in real-time and delivered directly to your device. Your privacy is our top priority.
+                          </p>
                       </div>
                   </div>
               </div>
@@ -215,7 +194,7 @@ export default function HomePage() {
         <Footer />
       </main>
 
-      {/* RENDER MODAL - Dipastikan Conditional Rendering Benar */}
+      {/* RENDER MODAL */}
       {showPopup && <InlinePricingModal onClose={() => setShowPopup(false)} />}
     </>
   );
