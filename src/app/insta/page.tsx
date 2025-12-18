@@ -1,218 +1,237 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
-import PricingModal from "../../components/PricingModal"; // Import Modal
-import { useState, useEffect } from "react";
+import { CheckCircle, Download, Camera, HelpCircle, Loader2, Lock, Instagram } from "lucide-react";
 
 export default function InstagramPage() {
-  const [activeTab, setActiveTab] = useState<'downloader' | 'profile'>('downloader');
-  const [inputValue, setInputValue] = useState("");
+  const [url, setUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [result, setResult] = useState<any>(null);
+  const [mediaData, setMediaData] = useState<any>(null);
+  
+  // State Limit Global
+  const [isLimitReached, setIsLimitReached] = useState(false);
 
-  // State Subscription
-  const [showModal, setShowModal] = useState(false);
-  const [dailyCount, setDailyCount] = useState(0);
-
-  // Cek Kuota (Menggunakan "dompet" yang sama dengan TikTok)
   useEffect(() => {
-    const storedDate = localStorage.getItem("guidify_date");
-    const storedCount = localStorage.getItem("guidify_count");
-    const today = new Date().toDateString();
-
-    if (storedDate !== today) {
-        localStorage.setItem("guidify_date", today);
-        localStorage.setItem("guidify_count", "0");
-        setDailyCount(0);
-    } else {
-        setDailyCount(Number(storedCount) || 0);
-    }
+    checkGlobalLimit();
   }, []);
 
-  const handleDownload = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // --- 1. CEK LIMIT (DOMPET GLOBAL) ---
+  const checkGlobalLimit = () => {
+    const isPremium = localStorage.getItem("guidify_premium_status") === "active";
+    if (isPremium) return; 
+
+    const today = new Date().toDateString();
+    const lastDate = localStorage.getItem("guidify_last_date");
     
-    // CEK LIMIT
-    if (dailyCount >= 1) {
-        setShowModal(true);
-        return;
-    }
-
-    setError("");
-    setResult(null);
-
-    if (!inputValue) {
-        setError("Please enter a link or username.");
-        return;
-    }
-
-    let targetUrl = inputValue;
-    if (activeTab === 'profile') {
-        const username = inputValue.replace('@', '').trim();
-        targetUrl = `https://www.instagram.com/${username}/`;
-    }
-
-    setIsLoading(true);
-
-    try {
-        const response = await fetch('/api/instagram', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ url: targetUrl }),
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            setResult(data.data);
-            setInputValue(""); 
-            
-            // UPDATE KUOTA (Instagram juga mengurangi jatah harian)
-            const newCount = dailyCount + 1;
-            setDailyCount(newCount);
-            localStorage.setItem("guidify_count", newCount.toString());
-
-        } else {
-            setError(data.message || 'Failed to download.');
-        }
-    } catch (err) {
-        setError("Network Error. Please try again.");
-    } finally {
-        setIsLoading(false);
+    if (lastDate !== today) {
+      // Reset Hari Baru
+      localStorage.setItem("guidify_last_date", today);
+      localStorage.setItem("guidify_global_limit", "0");
+      setIsLimitReached(false);
+    } else {
+      // Cek apakah kuota sudah dipakai di App lain (TikTok/YouTube)
+      const count = parseInt(localStorage.getItem("guidify_global_limit") || "0");
+      if (count >= 1) {
+        setIsLimitReached(true);
+      }
     }
   };
 
+  // --- 2. PROSES FETCH KE BACKEND ---
+  const handleProcess = async () => {
+    // A. Cek Limit Dulu
+    if (isLimitReached) {
+      if (confirm("⚠️ Daily Quota Reached!\n\nUpgrade to Premium for unlimited access?")) {
+          window.location.href = "/upgrade";
+      }
+      return;
+    }
+
+    // B. Validasi Input
+    if (!url.includes("instagram.com")) {
+      setError("Please paste a valid Instagram link.");
+      return;
+    }
+
+    setIsLoading(true);
+    setError("");
+    setMediaData(null);
+
+    try {
+      const response = await fetch('/api/instagram', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: url })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+          throw new Error(result.message || "Failed to fetch content.");
+      }
+
+      setMediaData(result.data);
+
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "Failed. Account might be Private.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // --- 3. DOWNLOAD & POTONG KUOTA ---
+  const handleDownloadFile = (downloadUrl: string) => {
+    if (isLimitReached) {
+        window.location.href = "/upgrade";
+        return;
+    }
+
+    // Buka Link
+    window.open(downloadUrl, '_blank');
+    
+    // Potong Kuota Global
+    localStorage.setItem("guidify_global_limit", "1");
+    localStorage.setItem("guidify_last_date", new Date().toDateString());
+    setIsLimitReached(true);
+  };
+
   return (
-    <main className="min-h-screen bg-black font-outfit text-white flex flex-col overflow-x-hidden">
+    <main className="min-h-screen bg-black font-outfit text-white flex flex-col">
       <Navbar />
-      
-      {/* Tampilkan Modal jika limit habis */}
-      {showModal && <PricingModal onClose={() => setShowModal(false)} />}
 
-      <div className="fixed top-[-10%] left-1/2 transform -translate-x-1/2 w-[600px] h-[600px] bg-gradient-to-r from-amber-500/20 via-red-500/20 to-pink-500/20 rounded-full blur-[120px] z-0 pointer-events-none"></div>
+      <div className="flex-grow flex flex-col items-center justify-center px-4 pt-32 pb-20 relative overflow-hidden">
+        {/* Background Effect */}
+        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-pink-900/20 via-black to-black"></div>
 
-      <div className="relative z-10 flex-grow flex flex-col items-center justify-center px-4 text-center pt-32 pb-20">
-        
-        {/* Indikator Kuota */}
-        <div className="inline-flex items-center gap-2 px-4 py-2 mb-8 border border-white/10 rounded-full bg-white/5 backdrop-blur-sm">
-            <span className={`w-2 h-2 rounded-full ${dailyCount >= 1 ? 'bg-red-500' : 'bg-green-500'}`}></span>
-            <span className="text-xs tracking-[0.2em] font-bold text-gray-300 uppercase">
-                Daily Quota: {1 - dailyCount} Left
-            </span>
+        {/* STATUS LIMIT BAR */}
+        <div className="mb-8 z-10">
+           {isLimitReached ? (
+              <span className="bg-red-900/30 text-red-500 border border-red-500/50 px-4 py-2 rounded-full text-xs font-bold tracking-widest uppercase animate-pulse">
+                 🔴 Daily Quota: 0 Left
+              </span>
+           ) : (
+              <span className="bg-green-900/30 text-green-500 border border-green-500/50 px-4 py-2 rounded-full text-xs font-bold tracking-widest uppercase">
+                 🟢 Daily Quota: 1 Left
+              </span>
+           )}
         </div>
 
-        <div className="mb-8 animate-fade-in-down">
-            <h1 className="text-5xl md:text-7xl font-bold font-cinzel mb-2">
-                Guidify<span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 via-red-500 to-pink-500">.Insta</span>
-            </h1>
-            <p className="text-gray-400 text-lg">Premium Instagram Saver for Reels, Stories & Photos</p>
-        </div>
+        <div className="text-center max-w-3xl z-10 w-full">
+          <h1 className="text-5xl md:text-7xl font-bold mb-4 font-cinzel text-transparent bg-clip-text bg-gradient-to-r from-amber-500 via-pink-500 to-purple-500">
+            Guidify<span className="text-white">.Insta</span>
+          </h1>
+          <p className="text-gray-300 text-lg md:text-xl mb-12 font-light tracking-wide">
+            Premium Downloader for Reels, Stories & Photos.
+          </p>
 
-        <div className="w-full max-w-xl bg-[#121212] border border-white/10 rounded-3xl p-6 md:p-10 shadow-2xl shadow-pink-900/10">
-            <div className="flex bg-white/5 p-1 rounded-xl mb-8">
-                <button 
-                    onClick={() => { setActiveTab('downloader'); setError(""); setResult(null); }}
-                    className={`flex-1 py-3 rounded-lg font-semibold transition-all duration-300 ${activeTab === 'downloader' ? 'bg-white/10 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
-                >
-                    Downloader
-                </button>
-                <button 
-                    onClick={() => { setActiveTab('profile'); setError(""); setResult(null); }}
-                    className={`flex-1 py-3 rounded-lg font-semibold transition-all duration-300 ${activeTab === 'profile' ? 'bg-white/10 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
-                >
-                    Profile HD
-                </button>
+          {/* INPUT BOX (SINGLE & CLEAN) */}
+          <div className="w-full bg-[#111] border border-white/10 p-2 rounded-2xl flex flex-col md:flex-row gap-2 shadow-2xl relative group mb-10 shadow-pink-900/10">
+            <input 
+              type="text" 
+              placeholder="Paste Instagram link here..."
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              className="relative flex-1 bg-transparent border-none outline-none text-white px-6 py-4 placeholder:text-gray-500 text-lg"
+            />
+            
+            <button 
+              onClick={handleProcess}
+              disabled={isLoading}
+              className={`relative px-8 py-3 rounded-xl font-bold transition-all text-white flex items-center justify-center gap-2 text-base ${
+                isLimitReached 
+                ? "bg-red-600 hover:bg-red-500" 
+                : "bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500" 
+              }`}
+            >
+              {isLoading ? <Loader2 className="animate-spin" /> : isLimitReached ? <><Lock className="w-4 h-4"/> Unlock</> : "Process"}
+            </button>
+          </div>
+
+          {error && (
+             <div className="bg-red-900/20 border border-red-500/50 text-red-400 px-6 py-4 rounded-xl mb-8 text-base">
+                ⚠️ {error}
+             </div>
+          )}
+
+          {/* RESULT CARD */}
+          {mediaData && !isLimitReached && (
+            <div className="w-full max-w-2xl mx-auto bg-[#1a1a1a] border border-pink-500/30 rounded-3xl overflow-hidden shadow-2xl animate-in fade-in slide-in-from-bottom-8 mb-20">
+                <div className="flex flex-col md:flex-row">
+                    {/* Thumbnail */}
+                    <div className="md:w-1/3 h-64 md:h-auto relative bg-black flex items-center justify-center overflow-hidden">
+                        <img src={mediaData.thumbnail} alt="Thumbnail" className="w-full h-full object-cover opacity-80" />
+                        {mediaData.type === 'Video' && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <Instagram className="w-12 h-12 text-white fill-white opacity-80" />
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Info & Download Button */}
+                    <div className="p-8 md:w-2/3 flex flex-col justify-center text-left">
+                        <span className="text-xs font-bold text-pink-500 tracking-widest uppercase mb-2">
+                            {mediaData.type} FOUND
+                        </span>
+                        <h3 className="text-xl font-bold text-white mb-2 line-clamp-2">
+                            {mediaData.author}
+                        </h3>
+                        <p className="text-gray-400 text-sm mb-8 line-clamp-1">{mediaData.title}</p>
+
+                        <button 
+                            onClick={() => handleDownloadFile(mediaData.downloadUrl)}
+                            className="w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-transform active:scale-95 text-lg shadow-lg"
+                        >
+                            <Download className="w-6 h-6" /> Download {mediaData.type}
+                        </button>
+                    </div>
+                </div>
             </div>
+          )}
 
-            <form onSubmit={handleDownload} className="flex flex-col gap-4">
-                <div className="relative">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                        {activeTab === 'downloader' ? '🔗' : '@'}
-                    </div>
-                    <input 
-                        type="text" 
-                        placeholder={activeTab === 'downloader' ? "Paste Instagram Link..." : "Enter Username..."}
-                        className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500 transition-all placeholder:text-gray-600"
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                        disabled={isLoading}
-                    />
-                </div>
+          {/* SEO SECTION (Standard Luxury) */}
+          <div className="text-left border-t border-white/10 pt-20 mt-10 w-full max-w-5xl mx-auto">
+              <h2 className="text-4xl font-bold text-white mb-10 font-cinzel text-center">
+                The Ultimate Instagram Saver
+              </h2>
+              
+              <div className="grid md:grid-cols-2 gap-12 mb-16">
+                  <div className="bg-[#111] p-8 rounded-3xl border border-white/5 hover:border-pink-500/30 transition-colors">
+                      <h3 className="text-2xl font-bold text-pink-500 mb-6">Premium Features</h3>
+                      <ul className="space-y-4 text-base text-gray-300">
+                        <li className="flex items-center gap-3"><CheckCircle className="w-6 h-6 text-pink-500 flex-shrink-0"/> Save Reels, Stories & Photos</li>
+                        <li className="flex items-center gap-3"><CheckCircle className="w-6 h-6 text-pink-500 flex-shrink-0"/> Full HD Original Quality</li>
+                        <li className="flex items-center gap-3"><CheckCircle className="w-6 h-6 text-pink-500 flex-shrink-0"/> 100% Anonymous & Secure</li>
+                      </ul>
+                  </div>
+                  
+                  <div className="space-y-6">
+                      <h3 className="text-2xl font-bold text-white mb-6 pl-2">FAQ</h3>
+                      <div className="bg-white/5 p-6 rounded-2xl border border-white/10 hover:bg-white/10 transition-colors">
+                          <h4 className="font-bold text-pink-500 text-lg mb-2 flex items-center gap-3">
+                            <HelpCircle className="w-5 h-5"/> Login Required?
+                          </h4>
+                          <p className="text-gray-300 text-base font-light">
+                            No. Just paste the link. We respect your privacy.
+                          </p>
+                      </div>
+                      <div className="bg-white/5 p-6 rounded-2xl border border-white/10 hover:bg-white/10 transition-colors">
+                          <h4 className="font-bold text-pink-500 text-lg mb-2 flex items-center gap-3">
+                            <HelpCircle className="w-5 h-5"/> Private Accounts?
+                          </h4>
+                          <p className="text-gray-300 text-base font-light">
+                            Currently we only support downloading from Public accounts for privacy reasons.
+                          </p>
+                      </div>
+                  </div>
+              </div>
+          </div>
 
-                <button 
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full py-4 rounded-xl font-bold text-lg text-white bg-gradient-to-r from-amber-500 via-red-500 to-pink-500 hover:opacity-90 transition-all shadow-lg shadow-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                    {isLoading ? "Processing..." : (activeTab === 'downloader' ? "DOWNLOAD NOW" : "GET PROFILE HD")}
-                </button>
-            </form>
-
-            {error && (
-                <div className="mt-6 p-3 bg-red-900/20 border border-red-500/50 text-red-400 rounded-lg text-sm">
-                    {error}
-                </div>
-            )}
-
-            {result && (
-                <div className="mt-8 p-4 bg-white/5 border border-white/10 rounded-2xl animate-fade-in-up text-left">
-                    <div className="flex gap-4 items-center mb-4">
-                        <div className="w-16 h-16 rounded-full p-[2px] bg-gradient-to-tr from-amber-400 to-pink-600">
-                            <img src={result.thumbnail} alt="Thumb" className="w-full h-full rounded-full object-cover border-2 border-black" />
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-white">{result.username || 'Instagram User'}</h3>
-                            <span className="text-xs text-pink-400 bg-pink-900/30 px-2 py-1 rounded-full border border-pink-500/30">
-                                {result.type} Found
-                            </span>
-                        </div>
-                    </div>
-
-                    <a 
-                        href={result.downloadUrl} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="block w-full text-center bg-white text-black font-bold py-3 rounded-xl hover:bg-gray-200 transition-colors"
-                    >
-                        Download HD Image/Video
-                    </a>
-                </div>
-            )}
         </div>
       </div>
-      {/* --- SEO CONTENT SECTION (WAJIB UNTUK ADSENSE) --- */}
-      <section className="max-w-4xl mx-auto px-6 py-16 text-left text-gray-300">
-        <article className="prose prose-invert lg:prose-xl mx-auto">
-            <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-500 via-red-500 to-pink-500 mb-6 font-cinzel">
-                Download Instagram Reels, Stories & Photos Anonymously
-            </h2>
-            <p className="mb-6 leading-relaxed">
-                Instagram does not allow users to download content directly within the app. Guidify.Insta bridges this gap by providing a secure, anonymous, and high-quality downloader for all Instagram media types. Save your favorite Reels, IGTV, Carousel posts, and even Profile Pictures in full HD resolution.
-            </p>
-
-            <h3 className="text-2xl font-bold text-white mb-4">All-in-One Instagram Tool Features</h3>
-            <ul className="list-disc pl-6 mb-8 space-y-2 text-gray-400">
-                <li><strong>Reels Downloader:</strong> Save entertaining short videos with audio intact.</li>
-                <li><strong>Story Saver:</strong> Download stories from public accounts before they disappear in 24 hours.</li>
-                <li><strong>Profile Picture Zoom (DP):</strong> View and download profile pictures in their original full size.</li>
-                <li><strong>100% Anonymous:</strong> The account owner will never know you viewed or downloaded their content.</li>
-            </ul>
-
-            <h3 className="text-2xl font-bold text-white mb-4">Frequently Asked Questions</h3>
-            <div className="space-y-4">
-                <div className="bg-white/5 p-5 rounded-xl border border-white/10">
-                    <h4 className="font-bold text-pink-500 mb-1">Do I need to login with my Instagram account?</h4>
-                    <p className="text-sm">No! Guidify puts your privacy first. We never ask for your Instagram password or login credentials. Just paste the link, and you are good to go.</p>
-                </div>
-                <div className="bg-white/5 p-5 rounded-xl border border-white/10">
-                    <h4 className="font-bold text-pink-500 mb-1">Can I download from Private Accounts?</h4>
-                    <p className="text-sm">Currently, our tool respects Instagram's privacy policy and only supports downloading media from Public accounts.</p>
-                </div>
-            </div>
-        </article>
-      </section>
       <Footer />
     </main>
   );

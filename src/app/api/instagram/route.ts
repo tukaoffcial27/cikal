@@ -10,47 +10,49 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'URL is required' }, { status: 400 });
     }
 
-    // Konfigurasi sesuai file script.js lampiran Anda
+    // --- KONEKSI KE API SNAP-VIDEO3 (Satu Pintu dengan YouTube/TikTok) ---
     const options = {
       method: 'POST',
       url: 'https://snap-video3.p.rapidapi.com/download',
       headers: {
-        'x-rapidapi-key': '99a1ef12a8mshb19eeedbfeab2a2p118655jsn35cd073a59d2', // Key dari script.js
+        'x-rapidapi-key': '99a1ef12a8mshb19eeedbfeab2a2p118655jsn35cd073a59d2', // Key Global Anda
         'x-rapidapi-host': 'snap-video3.p.rapidapi.com',
         'Content-Type': 'application/x-www-form-urlencoded'
       },
       data: new URLSearchParams({ url: url })
     };
 
-    console.log("Processing Instagram URL:", url);
+    console.log("🔍 Instagram API Request:", url);
 
     const response = await axios.request(options);
     const data = response.data;
 
-    // Logika Pemilahan Data (Sesuai script.js)
+    // --- LOGIKA FILTER HASIL ---
     if (data && data.medias && data.medias.length > 0) {
         
-        // Cari Video dulu, kalau tidak ada baru ambil Foto (logic script.js)
-        const videoItem = data.medias.find((m: any) => m.extension === 'mp4');
+        // Prioritas: Cari Video (MP4) dulu, kalau tidak ada baru Foto
+        const videoItem = data.medias.find((m: any) => m.extension === 'mp4' && !m.video_only);
         const photoItem = data.medias.find((m: any) => m.extension === 'jpg' || m.extension === 'png');
+        
+        // Ambil hasil terbaik
         const finalItem = videoItem || photoItem || data.medias[0];
+        const isVideo = !!videoItem; // Cek apakah ini video atau foto
 
-        // Tentukan Thumbnail (kadang ada di root, kadang di item)
-        const thumbnail = data.thumbnail || finalItem.url;
-
+        // Format Data untuk Frontend
         return NextResponse.json({
             message: 'Success',
             data: {
-                type: videoItem ? 'Video' : 'Photo',
-                thumbnail: thumbnail,
+                type: isVideo ? 'Video' : 'Photo',
+                title: data.title || (isVideo ? "Instagram Reel" : "Instagram Photo"),
+                thumbnail: data.thumbnail || finalItem.url,
                 downloadUrl: finalItem.url,
-                username: data.author?.username || 'Instagram User'
+                author: data.author?.username || 'Instagram User'
             }
         }, { status: 200 });
 
     } else {
         return NextResponse.json({ 
-            message: 'Content not found. Account might be private.' 
+            message: 'Content not found or Account is Private.' 
         }, { status: 404 });
     }
 
