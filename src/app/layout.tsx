@@ -12,12 +12,26 @@ const cinzel = Cinzel({
   variable: "--font-cinzel",
 });
 
+// --- PENGATURAN SEO & IDENTITAS WEBSITE ---
 export const metadata: Metadata = {
-  title: "Guidify Suite",
-  description: "Premium Social Media Tools",
-  // INI BAGIAN PENTING YANG SUDAH DIPERBAIKI:
+  // Judul yang muncul di Tab Browser & Google
+  title: "Guidify - Premium Social Media Downloader (No Watermark)",
+  
+  // Deskripsi di bawah judul Google
+  description: "The ultimate tool to download TikTok videos without watermark, save Instagram Reels, and convert YouTube to MP4/MP3. Fast, secure, and high quality.",
+  
+  // Kode Verifikasi Google Search Console (SUDAH BENAR DISINI)
   verification: {
     google: "F8-qAir322zBSKzxINGeb_ahWPg-JPWwtIBUBm-Osik",
+  },
+
+  // Agar tampilan cantik saat link dishare di WA/FB (OpenGraph)
+  openGraph: {
+    title: "Guidify - Premium Downloader",
+    description: "Download TikTok, Instagram & YouTube without watermark.",
+    url: "https://guidify.app",
+    siteName: "Guidify",
+    type: "website",
   },
 };
 
