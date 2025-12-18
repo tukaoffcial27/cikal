@@ -18,16 +18,17 @@ export default function TikTokPage() {
     const isPremium = localStorage.getItem("guidify_premium_status") === "active";
     if (isPremium) return; 
 
-    // 2. Cek Tanggal & Limit
+    // 2. Cek Tanggal & Limit (GUNAKAN KEY GLOBAL YANG BARU)
     const today = new Date().toDateString();
     const lastDate = localStorage.getItem("guidify_last_date");
     
     if (lastDate !== today) {
       localStorage.setItem("guidify_last_date", today);
-      localStorage.setItem("guidify_daily_count", "0");
+      localStorage.setItem("guidify_global_limit", "0"); // Reset jadi 0 (belum dipakai)
       setIsLimitReached(false);
     } else {
-      const count = parseInt(localStorage.getItem("guidify_daily_count") || "0");
+      // Cek apakah sudah dipakai (1 artinya habis)
+      const count = parseInt(localStorage.getItem("guidify_global_limit") || "0");
       if (count >= 1) {
         setIsLimitReached(true);
       }
@@ -35,17 +36,19 @@ export default function TikTokPage() {
   };
 
   const handleProcess = () => {
-    if (!url) {
-      alert("Please paste a valid TikTok link!");
-      return;
-    }
-
+    // --- PERBAIKAN LOGIKA TOMBOL ---
+    // 1. CEK LIMIT DULUAN (Prioritas Utama)
     if (isLimitReached) {
-      // --- PERBAIKAN BAHASA (FULL INGGRIS) ---
       if (confirm("⚠️ Daily Quota Reached!\n\nYou have reached your daily free limit. Upgrade to Premium for unlimited access?")) {
           window.location.href = "/upgrade";
       }
-      return; 
+      return; // Stop di sini, jangan tanya link
+    }
+
+    // 2. BARU CEK LINK (Kalau kuota masih ada)
+    if (!url) {
+      alert("Please paste a valid TikTok link!");
+      return;
     }
 
     setIsLoading(true);
@@ -54,7 +57,9 @@ export default function TikTokPage() {
       setIsLoading(false);
       alert("✅ Video Found! Downloading...");
       
-      localStorage.setItem("guidify_daily_count", "1");
+      // Catat Penggunaan Global (1 = Habis)
+      localStorage.setItem("guidify_global_limit", "1");
+      localStorage.setItem("guidify_last_date", new Date().toDateString()); // Update tanggal
       setIsLimitReached(true); 
       
     }, 2000);
@@ -115,22 +120,40 @@ export default function TikTokPage() {
             </button>
           </div>
 
-          {/* --- PERBAIKAN SEO (YANG TADI HILANG) --- */}
-          <div className="text-left border-t border-white/10 pt-16">
-              <h2 className="text-2xl font-bold text-white mb-4 font-cinzel">Why use Guidify for TikTok?</h2>
-              <div className="grid md:grid-cols-2 gap-8 text-gray-400 text-sm leading-relaxed">
-                  <p>
-                    Guidify offers the fastest way to save TikTok videos without the distracting watermark. Our premium servers ensure that you get the original quality file (HD/4K) directly to your device.
-                  </p>
-                  <ul className="list-disc pl-5 space-y-2">
-                    <li>No Watermark Guarantee</li>
-                    <li>Fastest Download Speed</li>
-                    <li>Secure & Anonymous</li>
-                    <li>Compatible with iOS, Android & PC</li>
-                  </ul>
+          {/* --- PERBAIKAN SEO (DESAIN MEWAH SEPERTI IG) --- */}
+          <div className="text-left border-t border-white/10 pt-16 max-w-4xl mx-auto w-full">
+              <h2 className="text-3xl font-bold text-white mb-6 font-cinzel text-center md:text-left">
+                The Ultimate TikTok Downloader Without Watermark
+              </h2>
+              
+              <div className="grid md:grid-cols-2 gap-10">
+                  <div className="space-y-4">
+                      <h3 className="text-xl font-bold text-amber-500">Why Choose Guidify?</h3>
+                      <p className="text-gray-400 text-sm leading-relaxed">
+                        Guidify TikTok is the premier solution for content creators. We detect and remove the floating TikTok ID instantly, ensuring your video looks professional and clean for reposting on Instagram Reels or YouTube Shorts.
+                      </p>
+                  </div>
+                  
+                  <div className="space-y-4">
+                      <h3 className="text-xl font-bold text-amber-500">Premium Features</h3>
+                      <ul className="space-y-3 text-sm text-gray-400">
+                        <li className="flex items-center gap-2">
+                           <span className="text-green-500">✔</span> No Watermark Guarantee
+                        </li>
+                        <li className="flex items-center gap-2">
+                           <span className="text-green-500">✔</span> Original HD/4K Quality
+                        </li>
+                        <li className="flex items-center gap-2">
+                           <span className="text-green-500">✔</span> Works on iOS, Android & PC
+                        </li>
+                        <li className="flex items-center gap-2">
+                           <span className="text-green-500">✔</span> 100% Secure & Anonymous
+                        </li>
+                      </ul>
+                  </div>
               </div>
           </div>
-          {/* ---------------------------------------- */}
+          {/* ----------------------------------------------- */}
 
         </div>
       </div>
