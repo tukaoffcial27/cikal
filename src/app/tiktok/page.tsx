@@ -9,27 +9,24 @@ export default function TikTokPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLimitReached, setIsLimitReached] = useState(false);
 
-  // 1. CEK LIMIT SAAT HALAMAN DIBUKA
   useEffect(() => {
     checkLimit();
   }, []);
 
   const checkLimit = () => {
-    // Cek apakah user punya "Stempel VIP" (License Key)
+    // 1. Cek Apakah User VIP?
     const isPremium = localStorage.getItem("guidify_premium_status") === "active";
-    if (isPremium) return; // Kalau VIP, abaikan limit
+    if (isPremium) return; 
 
-    // Logika Reset Harian
+    // 2. Cek Tanggal & Limit
     const today = new Date().toDateString();
     const lastDate = localStorage.getItem("guidify_last_date");
     
     if (lastDate !== today) {
-      // Hari baru -> Reset Limit
       localStorage.setItem("guidify_last_date", today);
       localStorage.setItem("guidify_daily_count", "0");
       setIsLimitReached(false);
     } else {
-      // Hari sama -> Cek hitungan
       const count = parseInt(localStorage.getItem("guidify_daily_count") || "0");
       if (count >= 1) {
         setIsLimitReached(true);
@@ -37,34 +34,28 @@ export default function TikTokPage() {
     }
   };
 
-  // 2. LOGIKA UTAMA TOMBOL PROCESS
   const handleProcess = () => {
     if (!url) {
       alert("Please paste a valid TikTok link!");
       return;
     }
 
-    // --- JEBAKAN REDIRECT DI SINI ---
     if (isLimitReached) {
-      // Jika kuota habis, JANGAN DOWNLOAD. Langsung lempar ke Upgrade.
-      if (confirm("⚠️ Daily Quota Reached!\n\nAnda sudah mencapai batas harian. Upgrade ke Premium untuk download tanpa batas?")) {
+      // --- PERBAIKAN BAHASA (FULL INGGRIS) ---
+      if (confirm("⚠️ Daily Quota Reached!\n\nYou have reached your daily free limit. Upgrade to Premium for unlimited access?")) {
           window.location.href = "/upgrade";
       }
       return; 
     }
-    // --------------------------------
 
-    // Jika Kuota Masih Ada: Lanjut Proses
     setIsLoading(true);
     
-    // Simulasi Download (2 detik)
     setTimeout(() => {
       setIsLoading(false);
       alert("✅ Video Found! Downloading...");
       
-      // Catat Penggunaan (Supaya besok kena limit)
       localStorage.setItem("guidify_daily_count", "1");
-      setIsLimitReached(true); // Update tampilan merah
+      setIsLimitReached(true); 
       
     }, 2000);
   };
@@ -77,7 +68,7 @@ export default function TikTokPage() {
         {/* Background */}
         <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-purple-900/20 via-black to-black"></div>
 
-        {/* STATUS LIMIT (Info di Atas) */}
+        {/* Info Kuota */}
         <div className="mb-8 z-10">
            {isLimitReached ? (
               <span className="bg-red-900/30 text-red-500 border border-red-500/50 px-4 py-2 rounded-full text-xs font-bold tracking-widest uppercase animate-pulse">
@@ -100,7 +91,7 @@ export default function TikTokPage() {
           </p>
 
           {/* INPUT BOX */}
-          <div className="w-full bg-[#111] border border-white/10 p-2 rounded-2xl flex flex-col md:flex-row gap-2 shadow-2xl relative group">
+          <div className="w-full bg-[#111] border border-white/10 p-2 rounded-2xl flex flex-col md:flex-row gap-2 shadow-2xl relative group mb-20">
             <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-amber-600 rounded-2xl opacity-20 group-hover:opacity-40 transition duration-500 blur-lg"></div>
             
             <input 
@@ -116,13 +107,31 @@ export default function TikTokPage() {
               disabled={isLoading}
               className={`relative px-8 py-3 rounded-xl font-bold transition-all text-black ${
                 isLimitReached 
-                ? "bg-red-600 hover:bg-red-500 text-white" // Warna Merah kalau limit habis
-                : "bg-white hover:bg-gray-200" // Warna Putih kalau aman
+                ? "bg-red-600 hover:bg-red-500 text-white" 
+                : "bg-white hover:bg-gray-200" 
               }`}
             >
               {isLoading ? "Processing..." : isLimitReached ? "🔒 Unlock Limit" : "Process"}
             </button>
           </div>
+
+          {/* --- PERBAIKAN SEO (YANG TADI HILANG) --- */}
+          <div className="text-left border-t border-white/10 pt-16">
+              <h2 className="text-2xl font-bold text-white mb-4 font-cinzel">Why use Guidify for TikTok?</h2>
+              <div className="grid md:grid-cols-2 gap-8 text-gray-400 text-sm leading-relaxed">
+                  <p>
+                    Guidify offers the fastest way to save TikTok videos without the distracting watermark. Our premium servers ensure that you get the original quality file (HD/4K) directly to your device.
+                  </p>
+                  <ul className="list-disc pl-5 space-y-2">
+                    <li>No Watermark Guarantee</li>
+                    <li>Fastest Download Speed</li>
+                    <li>Secure & Anonymous</li>
+                    <li>Compatible with iOS, Android & PC</li>
+                  </ul>
+              </div>
+          </div>
+          {/* ---------------------------------------- */}
+
         </div>
       </div>
       <Footer />
