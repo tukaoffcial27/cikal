@@ -1,6 +1,6 @@
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
-import { Zap, Check } from "lucide-react";
+import { Zap, Check, ShieldCheck } from "lucide-react";
 
 export default function UpgradePage() {
   const CHECKOUT_URL = "https://guidify.lemonsqueezy.com/buy/5eb36fb5-4bf6-4813-8cbd-536eb6a0d726";
@@ -22,17 +22,19 @@ export default function UpgradePage() {
 
             <div>
                 <h1 className="text-3xl font-bold text-white mb-2 font-cinzel">Daily Limit Reached</h1>
-                <p className="text-gray-400">
-                  Anda telah mencapai batas download gratis harian.
+                <p className="text-gray-400 text-sm">
+                  Kuota gratis harian Anda (1x Download) sudah habis. Kembali lagi besok atau upgrade untuk akses tanpa batas.
                 </p>
             </div>
 
             {/* Pricing Card */}
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 text-left">
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 text-left relative overflow-hidden">
+                <div className="absolute top-0 right-0 bg-amber-500 text-black text-[10px] font-bold px-3 py-1 rounded-bl-xl">POPULAR</div>
+                
                 <div className="flex justify-between items-end mb-6 pb-6 border-b border-white/10">
                     <div>
                         <h3 className="text-xl font-bold text-white">Premium Suite</h3>
-                        <p className="text-amber-500 text-xs font-bold uppercase tracking-widest bg-amber-500/10 inline-block px-2 py-1 rounded mt-2">Best Value</p>
+                        <p className="text-gray-400 text-xs mt-1">Full Access Pass</p>
                     </div>
                     <div className="text-right">
                         <span className="text-4xl font-bold text-white">$4.99</span>
@@ -41,14 +43,14 @@ export default function UpgradePage() {
                 </div>
 
                 <ul className="space-y-4 mb-8">
-                    <li className="flex items-center gap-3 text-gray-300">
-                        <Check className="w-5 h-5 text-amber-500" /> <span>Unlimited Downloads</span>
+                    <li className="flex items-center gap-3 text-gray-300 text-sm">
+                        <Check className="w-5 h-5 text-amber-500" /> <span>Unlimited Downloads (All Tools)</span>
                     </li>
-                    <li className="flex items-center gap-3 text-gray-300">
-                        <Check className="w-5 h-5 text-amber-500" /> <span>High-Speed Server</span>
+                    <li className="flex items-center gap-3 text-gray-300 text-sm">
+                        <Check className="w-5 h-5 text-amber-500" /> <span>Priority High-Speed Server</span>
                     </li>
-                    <li className="flex items-center gap-3 text-gray-300">
-                        <Check className="w-5 h-5 text-amber-500" /> <span>No Ads & Popups</span>
+                    <li className="flex items-center gap-3 text-gray-300 text-sm">
+                        <Check className="w-5 h-5 text-amber-500" /> <span>No Ads & Wait Time</span>
                     </li>
                 </ul>
 
@@ -59,12 +61,13 @@ export default function UpgradePage() {
                     Unlock Premium Access ⚡
                 </a>
                 
-                <p className="text-center text-xs text-gray-500 mt-4">
-                    Secure payment via Lemon Squeezy. Cancel anytime.
-                </p>
+                <div className="flex items-center justify-center gap-2 mt-4 text-[10px] text-gray-500">
+                    <ShieldCheck className="w-3 h-3" />
+                    Secure payment via Lemon Squeezy
+                </div>
             </div>
 
-            <a href="/" className="text-gray-500 hover:text-white text-sm transition-colors">
+            <a href="/" className="text-gray-500 hover:text-white text-sm transition-colors border-b border-transparent hover:border-white w-fit mx-auto">
                 ← Back to Home
             </a>
         </div>

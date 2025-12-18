@@ -3,34 +3,48 @@
 import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { useRouter } from "next/navigation"; // 1. Kita pakai Router untuk pindah halaman
+import Link from "next/link"; // Kita pakai Link untuk tombol Upgrade
 
 export default function HomePage() {
   const [isClient, setIsClient] = useState(false);
-  const router = useRouter(); // 2. Inisialisasi Router
+  const [isLimitReached, setIsLimitReached] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
+    checkDailyLimit();
   }, []);
 
-  // LOGIKA PINDAH HALAMAN (REDIRECT)
-  const handleCardClick = (url: string) => {
+  // --- FUNGSI CEK LIMIT PINTAR (AUTO RESET) ---
+  const checkDailyLimit = () => {
+    const STORAGE_KEY_DATE = "guidify_last_download_date";
+    
+    const savedDate = localStorage.getItem(STORAGE_KEY_DATE); // Format: "Thu Dec 18 2025"
+    const todayDate = new Date().toDateString(); // Ambil tanggal hari ini
+
+    // Jika tanggal simpanan BEDA dengan hari ini -> BERARTI SUDAH GANTI HARI -> RESET
+    if (savedDate !== todayDate) {
+      console.log("Hari baru! Limit di-reset.");
+      setIsLimitReached(false); 
+      // Jangan hapus tanggal dulu, nanti pas download baru ditimpa
+    } else {
+      console.log("Masih hari yang sama. Limit habis.");
+      setIsLimitReached(true);
+    }
+  };
+
+  // --- AKSI SAAT KLIK DOWNLOAD ---
+  const handleDownloadClick = (url: string) => {
     if (!isClient) return;
 
-    const STORAGE_KEY = "guidify_clicks_final"; 
-    const saved = localStorage.getItem(STORAGE_KEY);
-    const current = saved ? parseInt(saved) : 0;
-
-    if (current >= 1) {
-      // JIKA LIMIT HABIS -> PINDAH HALAMAN
-      console.log("Limit habis. Redirecting to /upgrade...");
-      router.push("/upgrade"); // INI KUNCINYA
-    } else {
-      // JIKA AMAN -> BUKA LINK & CATAT
-      console.log("Limit aman. Opening link...");
-      localStorage.setItem(STORAGE_KEY, "1");
-      window.open(url, '_blank');
-    }
+    // Catat tanggal hari ini sebagai "Terakhir Download"
+    const todayDate = new Date().toDateString();
+    localStorage.setItem("guidify_last_download_date", todayDate);
+    
+    // Set status jadi Limit Habis (agar tombol berubah jadi Upgrade)
+    setIsLimitReached(true);
+    
+    // Buka Link
+    window.open(url, '_blank');
   };
 
   return (
@@ -51,32 +65,75 @@ export default function HomePage() {
           <p className="text-gray-400 text-xl md:text-2xl mb-12 max-w-2xl mx-auto leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200">
             The Ultimate All-in-One Social Media Downloader.
           </p>
+          
+          {/* INFO KUOTA */}
+          <div className="mb-10">
+             {isLimitReached ? (
+                <span className="bg-red-900/30 text-red-500 border border-red-500/50 px-4 py-2 rounded-full text-xs font-bold tracking-widest uppercase animate-pulse">
+                   🔒 Daily Quota Reached (0/1)
+                </span>
+             ) : (
+                <span className="bg-green-900/30 text-green-500 border border-green-500/50 px-4 py-2 rounded-full text-xs font-bold tracking-widest uppercase">
+                   ✅ Free Daily Quota Available (1/1)
+                </span>
+             )}
+          </div>
 
-          {/* MENU KARTU (DIV BUTTON) */}
+          {/* MENU KARTU (SISTEM GANTI TOMBOL) */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl z-10 mb-20 animate-in fade-in zoom-in duration-1000 delay-300">
               
-              {/* TIKTOK */}
-              <div onClick={() => handleCardClick("https://tiktok.guidify.app")} className="group relative bg-[#111] border border-white/10 rounded-3xl p-8 hover:border-amber-500 transition-colors duration-300 cursor-pointer">
-                  <div className="w-16 h-16 bg-black border border-white/20 rounded-2xl flex items-center justify-center mb-6 text-3xl group-hover:scale-110 transition-transform">🎵</div>
+              {/* TIKTOK CARD */}
+              <div className="group relative bg-[#111] border border-white/10 rounded-3xl p-8 hover:border-amber-500 transition-colors duration-300">
+                  <div className="w-16 h-16 bg-black border border-white/20 rounded-2xl flex items-center justify-center mb-6 text-3xl">🎵</div>
                   <h3 className="text-2xl font-bold mb-2 text-white">TikTok Downloader</h3>
-                  <p className="text-gray-500 text-sm">Download video tanpa watermark.</p>
-                  <div className="mt-6 text-amber-500 font-bold flex items-center gap-2 text-sm">Open Tool →</div>
+                  <p className="text-gray-500 text-sm mb-6">Download video tanpa watermark.</p>
+                  
+                  {/* LOGIKA TOMBOL BERUBAH */}
+                  {isLimitReached ? (
+                      <Link href="/upgrade" className="block w-full bg-red-600 hover:bg-red-500 text-white font-bold py-3 rounded-xl transition-all text-sm">
+                         🔒 Upgrade to Unlock
+                      </Link>
+                  ) : (
+                      <div onClick={() => handleDownloadClick("https://tiktok.guidify.app")} className="block w-full bg-white text-black hover:bg-amber-500 hover:text-white font-bold py-3 rounded-xl transition-all cursor-pointer text-sm">
+                         Open Tool →
+                      </div>
+                  )}
               </div>
 
-              {/* INSTAGRAM */}
-              <div onClick={() => handleCardClick("https://insta.guidify.app")} className="group relative bg-[#111] border border-white/10 rounded-3xl p-8 hover:border-pink-500 transition-colors duration-300 cursor-pointer">
-                  <div className="w-16 h-16 bg-black border border-white/20 rounded-2xl flex items-center justify-center mb-6 text-3xl group-hover:scale-110 transition-transform">📸</div>
+              {/* INSTAGRAM CARD */}
+              <div className="group relative bg-[#111] border border-white/10 rounded-3xl p-8 hover:border-pink-500 transition-colors duration-300">
+                  <div className="w-16 h-16 bg-black border border-white/20 rounded-2xl flex items-center justify-center mb-6 text-3xl">📸</div>
                   <h3 className="text-2xl font-bold mb-2 text-white">Instagram Saver</h3>
-                  <p className="text-gray-500 text-sm">Simpan Reels & Stories HD.</p>
-                  <div className="mt-6 text-pink-500 font-bold flex items-center gap-2 text-sm">Open Tool →</div>
+                  <p className="text-gray-500 text-sm mb-6">Simpan Reels & Stories HD.</p>
+                  
+                  {/* LOGIKA TOMBOL BERUBAH */}
+                  {isLimitReached ? (
+                      <Link href="/upgrade" className="block w-full bg-red-600 hover:bg-red-500 text-white font-bold py-3 rounded-xl transition-all text-sm">
+                         🔒 Upgrade to Unlock
+                      </Link>
+                  ) : (
+                      <div onClick={() => handleDownloadClick("https://insta.guidify.app")} className="block w-full bg-white text-black hover:bg-pink-500 hover:text-white font-bold py-3 rounded-xl transition-all cursor-pointer text-sm">
+                         Open Tool →
+                      </div>
+                  )}
               </div>
 
-              {/* YOUTUBE */}
-              <div onClick={() => handleCardClick("https://youtube.guidify.app")} className="group relative bg-[#111] border border-white/10 rounded-3xl p-8 hover:border-red-500 transition-colors duration-300 cursor-pointer">
-                  <div className="w-16 h-16 bg-black border border-white/20 rounded-2xl flex items-center justify-center mb-6 text-3xl group-hover:scale-110 transition-transform">▶️</div>
+              {/* YOUTUBE CARD */}
+              <div className="group relative bg-[#111] border border-white/10 rounded-3xl p-8 hover:border-red-500 transition-colors duration-300">
+                  <div className="w-16 h-16 bg-black border border-white/20 rounded-2xl flex items-center justify-center mb-6 text-3xl">▶️</div>
                   <h3 className="text-2xl font-bold mb-2 text-white">YouTube Converter</h3>
-                  <p className="text-gray-500 text-sm">Convert ke MP4 & MP3 cepat.</p>
-                  <div className="mt-6 text-red-500 font-bold flex items-center gap-2 text-sm">Open Tool →</div>
+                  <p className="text-gray-500 text-sm mb-6">Convert ke MP4 & MP3 cepat.</p>
+                  
+                  {/* LOGIKA TOMBOL BERUBAH */}
+                  {isLimitReached ? (
+                      <Link href="/upgrade" className="block w-full bg-red-600 hover:bg-red-500 text-white font-bold py-3 rounded-xl transition-all text-sm">
+                         🔒 Upgrade to Unlock
+                      </Link>
+                  ) : (
+                      <div onClick={() => handleDownloadClick("https://youtube.guidify.app")} className="block w-full bg-white text-black hover:bg-red-500 hover:text-white font-bold py-3 rounded-xl transition-all cursor-pointer text-sm">
+                         Open Tool →
+                      </div>
+                  )}
               </div>
           </div>
 
