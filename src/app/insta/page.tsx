@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
-import { CheckCircle, Download, Camera, HelpCircle, Loader2, Lock, Instagram } from "lucide-react";
+import { CheckCircle, Download, HelpCircle, Loader2, Lock, Instagram } from "lucide-react";
 
 export default function InstagramPage() {
   const [url, setUrl] = useState("");
@@ -18,7 +18,7 @@ export default function InstagramPage() {
     checkGlobalLimit();
   }, []);
 
-  // --- 1. CEK LIMIT (DOMPET GLOBAL) ---
+  // --- 1. CEK LIMIT (SINKRON DENGAN TIKTOK) ---
   const checkGlobalLimit = () => {
     const isPremium = localStorage.getItem("guidify_premium_status") === "active";
     if (isPremium) return; 
@@ -27,12 +27,10 @@ export default function InstagramPage() {
     const lastDate = localStorage.getItem("guidify_last_date");
     
     if (lastDate !== today) {
-      // Reset Hari Baru
       localStorage.setItem("guidify_last_date", today);
       localStorage.setItem("guidify_global_limit", "0");
       setIsLimitReached(false);
     } else {
-      // Cek apakah kuota sudah dipakai di App lain (TikTok/YouTube)
       const count = parseInt(localStorage.getItem("guidify_global_limit") || "0");
       if (count >= 1) {
         setIsLimitReached(true);
@@ -42,7 +40,6 @@ export default function InstagramPage() {
 
   // --- 2. PROSES FETCH KE BACKEND ---
   const handleProcess = async () => {
-    // A. Cek Limit Dulu
     if (isLimitReached) {
       if (confirm("⚠️ Daily Quota Reached!\n\nUpgrade to Premium for unlimited access?")) {
           window.location.href = "/upgrade";
@@ -50,7 +47,6 @@ export default function InstagramPage() {
       return;
     }
 
-    // B. Validasi Input
     if (!url.includes("instagram.com")) {
       setError("Please paste a valid Instagram link.");
       return;
@@ -90,10 +86,8 @@ export default function InstagramPage() {
         return;
     }
 
-    // Buka Link
     window.open(downloadUrl, '_blank');
     
-    // Potong Kuota Global
     localStorage.setItem("guidify_global_limit", "1");
     localStorage.setItem("guidify_last_date", new Date().toDateString());
     setIsLimitReached(true);
@@ -104,11 +98,11 @@ export default function InstagramPage() {
       <Navbar />
 
       <div className="flex-grow flex flex-col items-center justify-center px-4 pt-32 pb-20 relative overflow-hidden">
-        {/* Background Effect */}
-        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-pink-900/20 via-black to-black"></div>
+        {/* Background Effect (Pink/Red Nuance) */}
+        <div className="fixed top-[-10%] left-1/2 transform -translate-x-1/2 w-[600px] h-[600px] bg-gradient-to-r from-amber-500/20 via-red-500/20 to-pink-500/20 rounded-full blur-[120px] z-0 pointer-events-none"></div>
 
         {/* STATUS LIMIT BAR */}
-        <div className="mb-8 z-10">
+        <div className="mb-8 z-10 relative">
            {isLimitReached ? (
               <span className="bg-red-900/30 text-red-500 border border-red-500/50 px-4 py-2 rounded-full text-xs font-bold tracking-widest uppercase animate-pulse">
                  🔴 Daily Quota: 0 Left
@@ -120,15 +114,16 @@ export default function InstagramPage() {
            )}
         </div>
 
-        <div className="text-center max-w-3xl z-10 w-full">
-          <h1 className="text-5xl md:text-7xl font-bold mb-4 font-cinzel text-transparent bg-clip-text bg-gradient-to-r from-amber-500 via-pink-500 to-purple-500">
-            Guidify<span className="text-white">.Insta</span>
+        <div className="text-center max-w-3xl z-10 w-full relative">
+          {/* JUDUL GRADIENT (SESUAI DESAIN LAMA) */}
+          <h1 className="text-5xl md:text-7xl font-bold mb-4 font-cinzel">
+            Guidify<span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 via-red-500 to-pink-500">.Insta</span>
           </h1>
           <p className="text-gray-300 text-lg md:text-xl mb-12 font-light tracking-wide">
-            Premium Downloader for Reels, Stories & Photos.
+            Premium Instagram Saver for Reels, Stories & Photos.
           </p>
 
-          {/* INPUT BOX (SINGLE & CLEAN) */}
+          {/* INPUT BOX (PINK GLOW) */}
           <div className="w-full bg-[#111] border border-white/10 p-2 rounded-2xl flex flex-col md:flex-row gap-2 shadow-2xl relative group mb-10 shadow-pink-900/10">
             <input 
               type="text" 
@@ -144,10 +139,10 @@ export default function InstagramPage() {
               className={`relative px-8 py-3 rounded-xl font-bold transition-all text-white flex items-center justify-center gap-2 text-base ${
                 isLimitReached 
                 ? "bg-red-600 hover:bg-red-500" 
-                : "bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500" 
+                : "bg-gradient-to-r from-amber-500 via-red-500 to-pink-500 hover:opacity-90 shadow-lg shadow-red-500/20" 
               }`}
             >
-              {isLoading ? <Loader2 className="animate-spin" /> : isLimitReached ? <><Lock className="w-4 h-4"/> Unlock</> : "Process"}
+              {isLoading ? <Loader2 className="animate-spin" /> : isLimitReached ? <><Lock className="w-4 h-4"/> Unlock</> : "Download Now"}
             </button>
           </div>
 
@@ -164,11 +159,9 @@ export default function InstagramPage() {
                     {/* Thumbnail */}
                     <div className="md:w-1/3 h-64 md:h-auto relative bg-black flex items-center justify-center overflow-hidden">
                         <img src={mediaData.thumbnail} alt="Thumbnail" className="w-full h-full object-cover opacity-80" />
-                        {mediaData.type === 'Video' && (
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <Instagram className="w-12 h-12 text-white fill-white opacity-80" />
-                            </div>
-                        )}
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <Instagram className="w-12 h-12 text-white fill-white opacity-80" />
+                        </div>
                     </div>
 
                     {/* Info & Download Button */}
@@ -192,43 +185,59 @@ export default function InstagramPage() {
             </div>
           )}
 
-          {/* SEO SECTION (Standard Luxury) */}
-          <div className="text-left border-t border-white/10 pt-20 mt-10 w-full max-w-5xl mx-auto">
-              <h2 className="text-4xl font-bold text-white mb-10 font-cinzel text-center">
-                The Ultimate Instagram Saver
-              </h2>
-              
-              <div className="grid md:grid-cols-2 gap-12 mb-16">
+          {/* --- SEO SECTION (KEMBALI KE ORIGINAL ANDA) --- */}
+          <section className="text-left border-t border-white/10 pt-20 mt-10 w-full max-w-5xl mx-auto">
+             <div className="grid md:grid-cols-2 gap-12 mb-16">
+                  
+                  {/* KOLOM KIRI: FITUR (Teks Asli Anda) */}
                   <div className="bg-[#111] p-8 rounded-3xl border border-white/5 hover:border-pink-500/30 transition-colors">
-                      <h3 className="text-2xl font-bold text-pink-500 mb-6">Premium Features</h3>
+                      <h3 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-500 via-red-500 to-pink-500 mb-6 font-cinzel">
+                          All-in-One Instagram Features
+                      </h3>
                       <ul className="space-y-4 text-base text-gray-300">
-                        <li className="flex items-center gap-3"><CheckCircle className="w-6 h-6 text-pink-500 flex-shrink-0"/> Save Reels, Stories & Photos</li>
-                        <li className="flex items-center gap-3"><CheckCircle className="w-6 h-6 text-pink-500 flex-shrink-0"/> Full HD Original Quality</li>
-                        <li className="flex items-center gap-3"><CheckCircle className="w-6 h-6 text-pink-500 flex-shrink-0"/> 100% Anonymous & Secure</li>
+                        <li className="flex items-start gap-3">
+                            <CheckCircle className="w-6 h-6 text-pink-500 flex-shrink-0 mt-1"/> 
+                            <span><strong>Reels Downloader:</strong> Save entertaining short videos with audio intact.</span>
+                        </li>
+                        <li className="flex items-start gap-3">
+                            <CheckCircle className="w-6 h-6 text-pink-500 flex-shrink-0 mt-1"/> 
+                            <span><strong>Story Saver:</strong> Download stories from public accounts before they disappear.</span>
+                        </li>
+                        <li className="flex items-start gap-3">
+                            <CheckCircle className="w-6 h-6 text-pink-500 flex-shrink-0 mt-1"/> 
+                            <span><strong>Profile Picture Zoom:</strong> View and download profile pictures in HD.</span>
+                        </li>
+                        <li className="flex items-start gap-3">
+                            <CheckCircle className="w-6 h-6 text-pink-500 flex-shrink-0 mt-1"/> 
+                            <span><strong>100% Anonymous:</strong> The account owner will never know you downloaded their content.</span>
+                        </li>
                       </ul>
                   </div>
                   
+                  {/* KOLOM KANAN: FAQ (TENTANG LICENSE KEY) */}
                   <div className="space-y-6">
-                      <h3 className="text-2xl font-bold text-white mb-6 pl-2">FAQ</h3>
+                      <h3 className="text-2xl font-bold text-white mb-6 pl-2">Frequently Asked Questions</h3>
+                      
                       <div className="bg-white/5 p-6 rounded-2xl border border-white/10 hover:bg-white/10 transition-colors">
                           <h4 className="font-bold text-pink-500 text-lg mb-2 flex items-center gap-3">
-                            <HelpCircle className="w-5 h-5"/> Login Required?
+                            <HelpCircle className="w-5 h-5"/> Do I need to login?
                           </h4>
                           <p className="text-gray-300 text-base font-light">
-                            No. Just paste the link. We respect your privacy.
+                             No account is required for free downloads. For Premium users, simply use your <b>License Key</b> to activate features. No login/password needed.
                           </p>
                       </div>
+                      
                       <div className="bg-white/5 p-6 rounded-2xl border border-white/10 hover:bg-white/10 transition-colors">
                           <h4 className="font-bold text-pink-500 text-lg mb-2 flex items-center gap-3">
-                            <HelpCircle className="w-5 h-5"/> Private Accounts?
+                            <HelpCircle className="w-5 h-5"/> How to activate Premium?
                           </h4>
                           <p className="text-gray-300 text-base font-light">
-                            Currently we only support downloading from Public accounts for privacy reasons.
+                             After purchase, you will receive a License Key via email. Click the "Activate License" button in the menu and paste your key.
                           </p>
                       </div>
                   </div>
               </div>
-          </div>
+          </section>
 
         </div>
       </div>
