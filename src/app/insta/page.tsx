@@ -11,27 +11,30 @@ export default function InstagramPage() {
   const [error, setError] = useState("");
   const [mediaData, setMediaData] = useState<any>(null);
   
-  // State Limit Global
+  // State Limit Khusus Instagram (Mandiri)
   const [isLimitReached, setIsLimitReached] = useState(false);
 
   useEffect(() => {
-    checkGlobalLimit();
+    checkInstaLimit();
   }, []);
 
-  // --- 1. CEK LIMIT (SINKRON DENGAN TIKTOK) ---
-  const checkGlobalLimit = () => {
+  // --- 1. CEK LIMIT KHUSUS INSTAGRAM ---
+  const checkInstaLimit = () => {
     const isPremium = localStorage.getItem("guidify_premium_status") === "active";
     if (isPremium) return; 
 
     const today = new Date().toDateString();
-    const lastDate = localStorage.getItem("guidify_last_date");
+    // Gunakan Key Khusus Instagram
+    const lastDate = localStorage.getItem("guidify_insta_last_date");
     
     if (lastDate !== today) {
-      localStorage.setItem("guidify_last_date", today);
-      localStorage.setItem("guidify_global_limit", "0");
+      // Reset Hari Baru khusus Instagram
+      localStorage.setItem("guidify_insta_last_date", today);
+      localStorage.setItem("guidify_insta_limit", "0");
       setIsLimitReached(false);
     } else {
-      const count = parseInt(localStorage.getItem("guidify_global_limit") || "0");
+      // Cek dompet khusus Instagram
+      const count = parseInt(localStorage.getItem("guidify_insta_limit") || "0");
       if (count >= 1) {
         setIsLimitReached(true);
       }
@@ -40,8 +43,9 @@ export default function InstagramPage() {
 
   // --- 2. PROSES FETCH KE BACKEND ---
   const handleProcess = async () => {
+    // Cek Limit Instagram
     if (isLimitReached) {
-      if (confirm("⚠️ Daily Quota Reached!\n\nUpgrade to Premium for unlimited access?")) {
+      if (confirm("⚠️ Instagram Daily Quota Reached!\n\nUpgrade to Premium for unlimited access?")) {
           window.location.href = "/upgrade";
       }
       return;
@@ -79,7 +83,7 @@ export default function InstagramPage() {
     }
   };
 
-  // --- 3. DOWNLOAD & POTONG KUOTA ---
+  // --- 3. DOWNLOAD & POTONG KUOTA INSTAGRAM ---
   const handleDownloadFile = (downloadUrl: string) => {
     if (isLimitReached) {
         window.location.href = "/upgrade";
@@ -88,8 +92,9 @@ export default function InstagramPage() {
 
     window.open(downloadUrl, '_blank');
     
-    localStorage.setItem("guidify_global_limit", "1");
-    localStorage.setItem("guidify_last_date", new Date().toDateString());
+    // CATAT KUOTA KHUSUS INSTAGRAM
+    localStorage.setItem("guidify_insta_limit", "1");
+    localStorage.setItem("guidify_insta_last_date", new Date().toDateString());
     setIsLimitReached(true);
   };
 
@@ -98,7 +103,7 @@ export default function InstagramPage() {
       <Navbar />
 
       <div className="flex-grow flex flex-col items-center justify-center px-4 pt-32 pb-20 relative overflow-hidden">
-        {/* Background Effect (Pink/Red Nuance) */}
+        {/* Background Effect (Pink/Red Nuance - TETAP SAMA) */}
         <div className="fixed top-[-10%] left-1/2 transform -translate-x-1/2 w-[600px] h-[600px] bg-gradient-to-r from-amber-500/20 via-red-500/20 to-pink-500/20 rounded-full blur-[120px] z-0 pointer-events-none"></div>
 
         {/* STATUS LIMIT BAR */}
