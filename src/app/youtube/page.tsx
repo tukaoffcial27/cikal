@@ -2,43 +2,58 @@
 
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
-import PricingModal from "../../components/PricingModal"; // Import Modal
 import { useState, useEffect } from "react";
+import { Lock } from "lucide-react"; // Ikon tambahan untuk status tombol
 
 export default function YoutubePage() {
   // State Utama
   const [url, setUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isDownloadingFile, setIsDownloadingFile] = useState(false); // State download
+  const [isDownloadingFile, setIsDownloadingFile] = useState(false); 
   const [error, setError] = useState("");
   const [result, setResult] = useState<any>(null);
 
-  // State Subscription
-  const [showModal, setShowModal] = useState(false);
-  const [dailyCount, setDailyCount] = useState(0);
+  // State Limit Khusus YouTube
+  const [isLimitReached, setIsLimitReached] = useState(false);
 
-  // 1. CEK KUOTA (Menggunakan "dompet" yang sama: guidify_count)
+  // 1. CEK KUOTA MANDIRI (YOUTUBE ONLY)
   useEffect(() => {
-    const storedDate = localStorage.getItem("guidify_date");
-    const storedCount = localStorage.getItem("guidify_count");
-    const today = new Date().toDateString();
-
-    if (storedDate !== today) {
-        localStorage.setItem("guidify_date", today);
-        localStorage.setItem("guidify_count", "0");
-        setDailyCount(0);
-    } else {
-        setDailyCount(Number(storedCount) || 0);
-    }
+    checkYoutubeLimit();
   }, []);
 
-  // FUNGSI 1: FETCH DATA (Cek Limit Awal)
+  const checkYoutubeLimit = () => {
+    // Cek Premium
+    const isPremium = localStorage.getItem("guidify_premium_status") === "active";
+    if (isPremium) return;
+
+    const today = new Date().toDateString();
+    
+    // Gunakan Key Khusus YouTube
+    const lastDate = localStorage.getItem("guidify_youtube_last_date");
+    const storedCount = localStorage.getItem("guidify_youtube_limit");
+
+    if (lastDate !== today) {
+        // Reset Hari Baru
+        localStorage.setItem("guidify_youtube_last_date", today);
+        localStorage.setItem("guidify_youtube_limit", "0");
+        setIsLimitReached(false);
+    } else {
+        // Cek apakah sudah dipakai
+        if (parseInt(storedCount || "0") >= 1) {
+            setIsLimitReached(true);
+        }
+    }
+  };
+
+  // FUNGSI 1: FETCH DATA
   const handleDownload = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // CEK LIMIT SEBELUM REQUEST API
-    if (dailyCount >= 1) {
-        setShowModal(true);
+    if (isLimitReached) {
+        if (confirm("⚠️ YouTube Daily Quota Reached!\n\nUpgrade to Premium for unlimited access?")) {
+            window.location.href = "/upgrade";
+        }
         return;
     }
 
@@ -64,7 +79,6 @@ export default function YoutubePage() {
         if (response.ok) {
             setResult(data.data);
             setUrl(""); 
-            // Kita BELUM kurangi kuota di sini, tunggu user klik tombol download file
         } else {
             setError(data.message || 'Failed to download.');
         }
@@ -75,12 +89,12 @@ export default function YoutubePage() {
     }
   };
 
-  // FUNGSI 2: FORCE DOWNLOAD & KURANGI KUOTA
+  // FUNGSI 2: FORCE DOWNLOAD & CATAT KUOTA
   const forceDownload = async (fileUrl: string, fileName: string, fileType: 'video' | 'audio') => {
     
     // Cek limit lagi (Double Protection)
-    if (dailyCount >= 1) {
-        setShowModal(true);
+    if (isLimitReached) {
+        window.location.href = "/upgrade";
         return;
     }
 
@@ -101,22 +115,22 @@ export default function YoutubePage() {
         document.body.removeChild(a);
         window.URL.revokeObjectURL(blobUrl);
 
-        // --- UPDATE KUOTA DI SINI ---
-        const newCount = dailyCount + 1;
-        setDailyCount(newCount);
-        localStorage.setItem("guidify_count", newCount.toString());
-        // ----------------------------
+        // --- UPDATE KUOTA KHUSUS YOUTUBE ---
+        localStorage.setItem("guidify_youtube_limit", "1");
+        localStorage.setItem("guidify_youtube_last_date", new Date().toDateString());
+        setIsLimitReached(true);
+        // -----------------------------------
 
-        console.log(`Download ${fileType} Success. Usage:`, newCount);
+        console.log(`Download ${fileType} Success.`);
 
     } catch (err) {
         console.error("Auto-download failed, fallback to new tab", err);
         window.open(fileUrl, '_blank');
         
         // Tetap hitung kuota karena user dapat videonya
-        const newCount = dailyCount + 1;
-        setDailyCount(newCount);
-        localStorage.setItem("guidify_count", newCount.toString());
+        localStorage.setItem("guidify_youtube_limit", "1");
+        localStorage.setItem("guidify_youtube_last_date", new Date().toDateString());
+        setIsLimitReached(true);
     } finally {
         setIsDownloadingFile(false);
     }
@@ -126,23 +140,32 @@ export default function YoutubePage() {
     <main className="min-h-screen bg-black font-outfit text-white flex flex-col overflow-x-hidden selection:bg-red-500 selection:text-white">
       <Navbar />
 
-      {/* Tampilkan Modal Paywall */}
-      {showModal && <PricingModal onClose={() => setShowModal(false)} />}
-
+      {/* Background Effect (TETAP SAMA) */}
       <div className="fixed top-[-20%] right-[-10%] w-[800px] h-[800px] bg-red-900/20 rounded-full blur-[150px] pointer-events-none"></div>
       <div className="fixed bottom-[-20%] left-[-10%] w-[600px] h-[600px] bg-red-800/10 rounded-full blur-[150px] pointer-events-none"></div>
 
       <div className="relative z-10 flex-grow flex flex-col items-center justify-center px-4 text-center pt-32 pb-20">
         
-        {/* Indikator Kuota */}
-        <div className="inline-flex items-center gap-2 px-4 py-2 mb-8 border border-white/10 rounded-full bg-white/5 backdrop-blur-sm">
-            <span className={`w-2 h-2 rounded-full ${dailyCount >= 1 ? 'bg-red-500' : 'bg-green-500'}`}></span>
-            <span className="text-xs tracking-[0.2em] font-bold text-gray-300 uppercase">
-                Daily Quota: {1 - dailyCount} Left
-            </span>
+        {/* Indikator Kuota (TETAP SAMA TAPI LOGIKA BARU) */}
+        <div className="inline-flex items-center gap-2 px-4 py-2 mb-8 border border-white/10 rounded-full bg-white/5 backdrop-blur-sm animate-in fade-in zoom-in">
+            {isLimitReached ? (
+                <>
+                    <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                    <span className="text-xs tracking-[0.2em] font-bold text-red-500 uppercase">
+                        Quota: 0 Left
+                    </span>
+                </>
+            ) : (
+                <>
+                    <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                    <span className="text-xs tracking-[0.2em] font-bold text-green-500 uppercase">
+                        Quota: 1 Left
+                    </span>
+                </>
+            )}
         </div>
 
-        <div className="mb-10 animate-fade-in-down">
+        <div className="mb-10 animate-in fade-in slide-in-from-bottom-4">
             <h1 className="text-5xl md:text-7xl font-bold font-cinzel mb-4">
                 Guidify<span className="text-red-600 drop-shadow-[0_0_15px_rgba(220,38,38,0.8)]">.Tube</span>
             </h1>
@@ -152,6 +175,7 @@ export default function YoutubePage() {
             </p>
         </div>
 
+        {/* INPUT BOX */}
         <div className="w-full max-w-2xl bg-[#0a0a0a] border border-red-900/30 rounded-3xl p-2 shadow-2xl shadow-red-900/10">
             <form onSubmit={handleDownload} className="flex flex-col md:flex-row gap-2">
                 <input 
@@ -162,12 +186,17 @@ export default function YoutubePage() {
                     onChange={(e) => setUrl(e.target.value)}
                     disabled={isLoading}
                 />
+                
                 <button 
                     type="submit"
                     disabled={isLoading}
-                    className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all shadow-[0_0_20px_rgba(220,38,38,0.4)] hover:shadow-[0_0_30px_rgba(220,38,38,0.6)] disabled:opacity-50 disabled:cursor-not-allowed min-w-[160px]"
+                    className={`px-8 py-4 rounded-2xl font-bold text-lg transition-all shadow-[0_0_20px_rgba(220,38,38,0.4)] hover:shadow-[0_0_30px_rgba(220,38,38,0.6)] disabled:opacity-50 disabled:cursor-not-allowed min-w-[160px] flex items-center justify-center gap-2 ${
+                        isLimitReached 
+                        ? "bg-red-800 text-white cursor-pointer hover:bg-red-700" 
+                        : "bg-red-600 hover:bg-red-700 text-white"
+                    }`}
                 >
-                    {isLoading ? "..." : "Convert"}
+                    {isLoading ? "..." : isLimitReached ? <><Lock className="w-5 h-5"/> Unlock</> : "Convert"}
                 </button>
             </form>
         </div>
@@ -178,8 +207,9 @@ export default function YoutubePage() {
             </div>
         )}
 
-        {result && (
-            <div className="mt-12 w-full max-w-2xl animate-fade-in-up">
+        {/* RESULT CARD */}
+        {result && !isLimitReached && (
+            <div className="mt-12 w-full max-w-2xl animate-in fade-in slide-in-from-bottom-8">
                 <div className="bg-[#111] border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
                     <div className="relative h-64 md:h-80 w-full">
                         <img src={result.thumbnail} alt="Thumbnail" className="w-full h-full object-cover opacity-80" />
@@ -189,14 +219,14 @@ export default function YoutubePage() {
                                 {result.title}
                             </h3>
                             <div className="flex gap-2">
-                                <span className="bg-red-600 text-white text-xs px-2 py-1 rounded font-bold">HD</span>
+                                <span className="bg-red-600 text-white text-xs px-2 py-1 rounded font-bold">{result.quality || "HD"}</span>
                                 <span className="bg-white/20 text-white text-xs px-2 py-1 rounded font-bold">Video</span>
                             </div>
                         </div>
                     </div>
 
                     <div className="p-6 grid gap-4">
-                        {/* TOMBOL VIDEO (Force Download + Hitung Kuota) */}
+                        {/* TOMBOL VIDEO */}
                         {result.videoUrl && (
                             <button 
                                 onClick={() => forceDownload(result.videoUrl, `Guidify-YouTube-${Date.now()}.mp4`, 'video')}
@@ -208,7 +238,7 @@ export default function YoutubePage() {
                             </button>
                         )}
                         
-                        {/* TOMBOL AUDIO (Force Download + Hitung Kuota) */}
+                        {/* TOMBOL AUDIO */}
                         {result.audioUrl && (
                             <button 
                                 onClick={() => forceDownload(result.audioUrl, `Guidify-Audio-${Date.now()}.mp3`, 'audio')}
@@ -225,7 +255,7 @@ export default function YoutubePage() {
         )}
 
       </div>
-     {/* --- SEO CONTENT SECTION (WAJIB UNTUK ADSENSE) --- */}
+     {/* --- SEO CONTENT SECTION (ASLI DARI FILE ANDA) --- */}
       <section className="max-w-4xl mx-auto px-6 py-16 text-left text-gray-300">
         <article className="prose prose-invert lg:prose-xl mx-auto">
             <h2 className="text-3xl font-bold text-red-600 mb-6 font-cinzel">
