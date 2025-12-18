@@ -36,6 +36,7 @@ export default function TikTokPage() {
   };
 
   const handleProcess = async () => {
+    // 1. Cek Limit
     if (isLimitReached) {
       if (confirm("⚠️ Daily Quota Reached!\n\nUpgrade to Premium for unlimited access?")) {
           window.location.href = "/upgrade";
@@ -43,6 +44,7 @@ export default function TikTokPage() {
       return;
     }
 
+    // 2. Validasi URL
     if (!url.includes("tiktok.com")) {
       setError("Please paste a valid TikTok link.");
       return;
@@ -53,37 +55,36 @@ export default function TikTokPage() {
     setVideoData(null);
 
     try {
-      // ============================================================
-      // ⚠️ TEMPEL KODE API ASLI ANDA DI BAWAH INI ⚠️
-      // ============================================================
-      // Hapus bagian ini jika sudah punya kode API sendiri.
+      // --- PERBAIKAN LOGIKA API (SESUAI DATA INSTAGRAM) ---
+      // Kita tidak tembak RapidAPI langsung, tapi ke Backend Internal Next.js
+      // agar Cost terkontrol dan Key aman.
       
-      // Contoh Fetch ke API SnapTik/RapidAPI (Sesuaikan dengan dokumentasi API Anda):
-      /*
-      const response = await fetch('YOUR_API_ENDPOINT', {
+      const response = await fetch('/api/tiktok', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: url }) 
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ url: url })
       });
-      const data = await response.json();
-      
-      // Petakan hasil API ke format ini:
+
+      const result = await response.json();
+
+      if (!response.ok) {
+          throw new Error(result.error || "Failed to fetch data");
+      }
+
+      // Mapping Data dari Backend ke UI
+      // Kita asumsikan Backend mengirim struktur data yang standar
       setVideoData({
-          title: data.title || "TikTok Video",
-          cover: data.thumbnail || "",
-          author: data.author || "User",
-          download_url: data.video_url // <-- INI YANG PENTING
+          title: result.data.title || "TikTok Video No Watermark",
+          cover: result.data.thumbnail || result.data.cover, // Cover Image
+          author: result.data.author || "User",
+          download_url: result.data.downloadUrl || result.data.play // Link Download Asli
       });
-      */
 
-      // --- SEMENTARA (MOCK DATA DIHAPUS AGAR ANDA ISI API ASLI) ---
-      // Saya tidak pasang link video google lagi supaya tidak salah download.
-      alert("⚠️ PERINGATAN DEVELOPER:\n\nAnda belum memasang kode API di file 'src/app/tiktok/page.tsx'.\nSilakan buka kodingan dan tempel fetch API Anda di baris 70 agar video asli terdownload.");
-      
-      // ============================================================
-
-    } catch (err) {
-      setError("Failed to fetch video. Please check the link.");
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "Failed to fetch video. Please check the link.");
     } finally {
       setIsLoading(false);
     }
@@ -95,6 +96,8 @@ export default function TikTokPage() {
         return;
     }
     window.open(downloadUrl, '_blank');
+    
+    // CATAT KUOTA
     localStorage.setItem("guidify_global_limit", "1");
     localStorage.setItem("guidify_last_date", new Date().toDateString());
     setIsLimitReached(true);
@@ -105,8 +108,10 @@ export default function TikTokPage() {
       <Navbar />
 
       <div className="flex-grow flex flex-col items-center justify-center px-4 pt-32 pb-20 relative overflow-hidden">
+        {/* Background */}
         <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-purple-900/20 via-black to-black"></div>
 
+        {/* STATUS LIMIT */}
         <div className="mb-8 z-10">
            {isLimitReached ? (
               <span className="bg-red-900/30 text-red-500 border border-red-500/50 px-4 py-2 rounded-full text-xs font-bold tracking-widest uppercase animate-pulse">
@@ -123,23 +128,24 @@ export default function TikTokPage() {
           <h1 className="text-5xl md:text-7xl font-bold mb-4 font-cinzel text-transparent bg-clip-text bg-gradient-to-r from-white via-purple-200 to-white">
             TikTok <span className="text-amber-500">Premium</span>
           </h1>
-          <p className="text-gray-400 text-lg mb-12">
-            Download videos without watermark in HD.
+          <p className="text-gray-300 text-lg md:text-xl mb-12 font-light tracking-wide">
+            Download videos without watermark in HD Quality.
           </p>
 
+          {/* INPUT BOX */}
           <div className="w-full bg-[#111] border border-white/10 p-2 rounded-2xl flex flex-col md:flex-row gap-2 shadow-2xl relative group mb-10">
             <input 
               type="text" 
               placeholder="Paste TikTok video link here..."
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              className="relative flex-1 bg-transparent border-none outline-none text-white px-4 py-3 placeholder:text-gray-600"
+              className="relative flex-1 bg-transparent border-none outline-none text-white px-6 py-4 placeholder:text-gray-500 text-lg"
             />
             
             <button 
               onClick={handleProcess}
               disabled={isLoading}
-              className={`relative px-8 py-3 rounded-xl font-bold transition-all text-black flex items-center justify-center gap-2 ${
+              className={`relative px-8 py-3 rounded-xl font-bold transition-all text-black flex items-center justify-center gap-2 text-base ${
                 isLimitReached 
                 ? "bg-red-600 hover:bg-red-500 text-white" 
                 : "bg-white hover:bg-gray-200" 
@@ -150,14 +156,14 @@ export default function TikTokPage() {
           </div>
 
           {error && (
-             <div className="bg-red-900/20 border border-red-500/50 text-red-400 px-4 py-3 rounded-xl mb-8">
+             <div className="bg-red-900/20 border border-red-500/50 text-red-400 px-6 py-4 rounded-xl mb-8 text-base">
                 ⚠️ {error}
              </div>
           )}
 
           {/* RESULT CARD */}
           {videoData && !isLimitReached && (
-            <div className="w-full max-w-2xl mx-auto bg-[#1a1a1a] border border-amber-500/30 rounded-3xl overflow-hidden shadow-2xl animate-in fade-in slide-in-from-bottom-8">
+            <div className="w-full max-w-2xl mx-auto bg-[#1a1a1a] border border-amber-500/30 rounded-3xl overflow-hidden shadow-2xl animate-in fade-in slide-in-from-bottom-8 mb-20">
                 <div className="flex flex-col md:flex-row">
                     <div className="md:w-1/3 h-48 md:h-auto relative bg-black">
                         <img src={videoData.cover} alt="Thumbnail" className="w-full h-full object-cover opacity-80" />
@@ -165,54 +171,60 @@ export default function TikTokPage() {
                             <Play className="w-12 h-12 text-white fill-white opacity-80" />
                         </div>
                     </div>
-                    <div className="p-6 md:w-2/3 flex flex-col justify-center text-left">
-                        <h3 className="text-lg font-bold text-white mb-1 line-clamp-1">{videoData.title}</h3>
-                        <p className="text-gray-400 text-sm mb-6">By: {videoData.author}</p>
+                    <div className="p-8 md:w-2/3 flex flex-col justify-center text-left">
+                        <h3 className="text-xl font-bold text-white mb-2 line-clamp-2">{videoData.title}</h3>
+                        <p className="text-gray-400 text-base mb-8">By: <span className="text-amber-500">{videoData.author}</span></p>
+
                         <button 
                             onClick={() => handleDownloadFile(videoData.download_url)}
-                            className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-transform active:scale-95"
+                            className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-transform active:scale-95 text-lg"
                         >
-                            <Download className="w-5 h-5" /> Download No Watermark
+                            <Download className="w-6 h-6" /> Download No Watermark
                         </button>
                     </div>
                 </div>
             </div>
           )}
 
-          {/* FAQ SECTION (UPDATED TEXT) */}
-          <div className="text-left border-t border-white/10 pt-16 mt-20 w-full">
-              <h2 className="text-3xl font-bold text-white mb-8 font-cinzel text-center">
+          {/* SEO SECTION */}
+          <div className="text-left border-t border-white/10 pt-20 mt-10 w-full max-w-5xl mx-auto">
+              <h2 className="text-4xl font-bold text-white mb-10 font-cinzel text-center">
                 The Ultimate TikTok Downloader
               </h2>
               
-              <div className="grid md:grid-cols-2 gap-10 mb-12">
-                  <div className="bg-[#111] p-6 rounded-2xl border border-white/5">
-                      <h3 className="text-xl font-bold text-amber-500 mb-4">Why Guidify?</h3>
-                      <p className="text-gray-400 text-sm leading-relaxed mb-4">
+              <div className="grid md:grid-cols-2 gap-12 mb-16">
+                  {/* KOLOM KIRI: FITUR */}
+                  <div className="bg-[#111] p-8 rounded-3xl border border-white/5 hover:border-amber-500/30 transition-colors">
+                      <h3 className="text-2xl font-bold text-amber-500 mb-6">Why Guidify?</h3>
+                      <p className="text-gray-300 text-base leading-relaxed mb-6 font-light">
                         Guidify TikTok removes the distracting watermark instantly, ensuring your video looks professional for reposting on Instagram Reels or YouTube Shorts.
                       </p>
-                      <ul className="space-y-3 text-sm text-gray-400">
-                        <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500"/> No Watermark Guarantee</li>
-                        <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500"/> Original Quality Preserved</li>
-                        <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500"/> 100% Secure & Anonymous</li>
+                      <ul className="space-y-4 text-base text-gray-300">
+                        <li className="flex items-center gap-3"><CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0"/> No Watermark Guarantee</li>
+                        <li className="flex items-center gap-3"><CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0"/> Original Quality Preserved (HD)</li>
+                        <li className="flex items-center gap-3"><CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0"/> 100% Secure & Anonymous</li>
                       </ul>
                   </div>
                   
-                  <div className="space-y-4">
-                      <h3 className="text-xl font-bold text-white mb-4">Frequently Asked Questions</h3>
+                  {/* KOLOM KANAN: FAQ */}
+                  <div className="space-y-6">
+                      <h3 className="text-2xl font-bold text-white mb-6 pl-2">Frequently Asked Questions</h3>
                       
-                      {/* TEXT FAQ YANG SUDAH DIPERBAIKI */}
-                      <div className="bg-white/5 p-4 rounded-xl border border-white/10">
-                          <h4 className="font-bold text-amber-500 text-sm mb-1 flex items-center gap-2"><HelpCircle className="w-4 h-4"/> Do I need an account/login?</h4>
-                          <p className="text-gray-400 text-xs">
-                            No account is required for free downloads. For Premium users, simply use your <b>License Key</b> to activate features. No login/password needed.
+                      <div className="bg-white/5 p-6 rounded-2xl border border-white/10 hover:bg-white/10 transition-colors">
+                          <h4 className="font-bold text-amber-500 text-lg mb-2 flex items-center gap-3">
+                            <HelpCircle className="w-5 h-5"/> Do I need an account?
+                          </h4>
+                          <p className="text-gray-300 text-base font-light">
+                            No account required for free downloads. Premium users only need a <b>License Key</b> to activate features.
                           </p>
                       </div>
                       
-                      <div className="bg-white/5 p-4 rounded-xl border border-white/10">
-                          <h4 className="font-bold text-amber-500 text-sm mb-1 flex items-center gap-2"><HelpCircle className="w-4 h-4"/> How to activate Premium?</h4>
-                          <p className="text-gray-400 text-xs">
-                            After purchase, you will receive a License Key via email. Click the "Activate License" button in the menu and paste your key.
+                      <div className="bg-white/5 p-6 rounded-2xl border border-white/10 hover:bg-white/10 transition-colors">
+                          <h4 className="font-bold text-amber-500 text-lg mb-2 flex items-center gap-3">
+                            <HelpCircle className="w-5 h-5"/> How to activate Premium?
+                          </h4>
+                          <p className="text-gray-300 text-base font-light">
+                            Use the License Key sent to your email after purchase. Click "Activate License" in the menu.
                           </p>
                       </div>
                   </div>
