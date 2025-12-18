@@ -10,25 +10,32 @@ export default function TikTokPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [videoData, setVideoData] = useState<any>(null);
+  
+  // STATE LIMIT KHUSUS TIKTOK (INDEPENDEN)
   const [isLimitReached, setIsLimitReached] = useState(false);
 
   useEffect(() => {
-    checkGlobalLimit();
+    checkTikTokLimit();
   }, []);
 
-  const checkGlobalLimit = () => {
+  // --- 1. CEK LIMIT KHUSUS TIKTOK ---
+  const checkTikTokLimit = () => {
+    // Cek status premium user
     const isPremium = localStorage.getItem("guidify_premium_status") === "active";
     if (isPremium) return; 
 
     const today = new Date().toDateString();
-    const lastDate = localStorage.getItem("guidify_last_date");
+    // Gunakan Key Penyimpanan Khusus TikTok
+    const lastDate = localStorage.getItem("guidify_tiktok_last_date");
     
     if (lastDate !== today) {
-      localStorage.setItem("guidify_last_date", today);
-      localStorage.setItem("guidify_global_limit", "0");
+      // Reset Hari Baru khusus TikTok
+      localStorage.setItem("guidify_tiktok_last_date", today);
+      localStorage.setItem("guidify_tiktok_limit", "0");
       setIsLimitReached(false);
     } else {
-      const count = parseInt(localStorage.getItem("guidify_global_limit") || "0");
+      // Cek dompet khusus TikTok
+      const count = parseInt(localStorage.getItem("guidify_tiktok_limit") || "0");
       if (count >= 1) {
         setIsLimitReached(true);
       }
@@ -36,9 +43,9 @@ export default function TikTokPage() {
   };
 
   const handleProcess = async () => {
-    // 1. Cek Limit
+    // 1. Cek Limit TikTok
     if (isLimitReached) {
-      if (confirm("⚠️ Daily Quota Reached!\n\nUpgrade to Premium for unlimited access?")) {
+      if (confirm("⚠️ TikTok Daily Quota Reached!\n\nUpgrade to Premium for unlimited access?")) {
           window.location.href = "/upgrade";
       }
       return;
@@ -55,10 +62,7 @@ export default function TikTokPage() {
     setVideoData(null);
 
     try {
-      // --- PERBAIKAN LOGIKA API (SESUAI DATA INSTAGRAM) ---
-      // Kita tidak tembak RapidAPI langsung, tapi ke Backend Internal Next.js
-      // agar Cost terkontrol dan Key aman.
-      
+      // Panggil Backend API TikTok
       const response = await fetch('/api/tiktok', {
           method: 'POST',
           headers: {
@@ -73,13 +77,11 @@ export default function TikTokPage() {
           throw new Error(result.error || "Failed to fetch data");
       }
 
-      // Mapping Data dari Backend ke UI
-      // Kita asumsikan Backend mengirim struktur data yang standar
       setVideoData({
           title: result.data.title || "TikTok Video No Watermark",
-          cover: result.data.thumbnail || result.data.cover, // Cover Image
+          cover: result.data.thumbnail || result.data.cover,
           author: result.data.author || "User",
-          download_url: result.data.downloadUrl || result.data.play // Link Download Asli
+          download_url: result.data.downloadUrl 
       });
 
     } catch (err: any) {
@@ -97,9 +99,9 @@ export default function TikTokPage() {
     }
     window.open(downloadUrl, '_blank');
     
-    // CATAT KUOTA
-    localStorage.setItem("guidify_global_limit", "1");
-    localStorage.setItem("guidify_last_date", new Date().toDateString());
+    // CATAT KUOTA KHUSUS TIKTOK
+    localStorage.setItem("guidify_tiktok_limit", "1");
+    localStorage.setItem("guidify_tiktok_last_date", new Date().toDateString());
     setIsLimitReached(true);
   };
 
@@ -108,10 +110,10 @@ export default function TikTokPage() {
       <Navbar />
 
       <div className="flex-grow flex flex-col items-center justify-center px-4 pt-32 pb-20 relative overflow-hidden">
-        {/* Background */}
+        {/* Background Effect */}
         <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-purple-900/20 via-black to-black"></div>
 
-        {/* STATUS LIMIT */}
+        {/* STATUS LIMIT BAR */}
         <div className="mb-8 z-10">
            {isLimitReached ? (
               <span className="bg-red-900/30 text-red-500 border border-red-500/50 px-4 py-2 rounded-full text-xs font-bold tracking-widest uppercase animate-pulse">
